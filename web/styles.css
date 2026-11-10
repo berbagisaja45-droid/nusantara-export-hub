@@ -18,3 +18,11 @@
 .supplier-panel strong{font-size:12px;color:#d4e3c9;margin-top:12px}
 .honey-mark{font-size:36px;color:#e6c778;margin-bottom:15px}
 @media(max-width:700px){.supplier-feature{grid-template-columns:1fr;padding:48px 6%;gap:24px}.supplier-copy h2{font-size:34px}.product{min-height:0}.product-topline{flex-wrap:wrap}}
+
+.product-image-wrap{width:100%;height:220px;margin:-23px -23px 18px;width:calc(100% + 46px);position:relative;overflow:hidden;background:#edf1e8;border-radius:8px 8px 0 0}
+.product-image{display:block;width:100%;height:100%;object-fit:cover;transition:transform .35s ease}
+.product:hover .product-image{transform:scale(1.035)}
+.image-note{position:absolute;left:10px;bottom:10px;background:rgba(255,255,255,.92);color:#354638;padding:6px 9px;border-radius:3px;font-size:10px}
+.image-failed{background:linear-gradient(135deg,#edf1e8,#dce5d7)}
+.product-image-wrap.image-failed:after{content:"Foto produk belum tersedia";display:grid;place-items:center;height:100%;color:#526456;font-size:13px}
+@media(max-width:700px){.product-image-wrap{height:210px}}
