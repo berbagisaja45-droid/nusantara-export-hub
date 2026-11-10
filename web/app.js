@@ -16,3 +16,17 @@ const galoGallery=[
 ];
 const gallery=document.getElementById("galo-gallery-grid");
 if(gallery) gallery.innerHTML=galoGallery.map(item=>'<article class="galo-gallery-card"><img src="'+item.image+'" alt="'+item.alt+'" loading="eager" onerror="this.closest(\'.galo-gallery-card\').classList.add(\'gallery-image-failed\');this.remove()"><div><h3>'+item.title+'</h3><p>'+item.desc+'</p>'+(item.credit?'<small>'+item.credit+' · <a href="'+item.source+'" target="_blank" rel="noopener">Sumber foto</a></small>':'')+'</div></article>').join("");
+
+/* MVP pilot contact forms: email hand-off until Supabase is connected. */
+function wireMailForm(formId, subjectPrefix) {
+ const form=document.getElementById(formId); if(!form)return;
+ form.addEventListener("submit",function(event){
+  event.preventDefault(); if(!form.reportValidity())return;
+  const values=new FormData(form), lines=[];
+  for(const [key,value] of values.entries())lines.push(key.replaceAll("_"," ")+": "+value);
+  window.location.href="mailto:berbagisaja45@gmail.com?subject="+encodeURIComponent(subjectPrefix)+"&body="+encodeURIComponent(lines.join("\n"));
+  const note=document.createElement("p");note.className="form-note";note.textContent="Your email application should open with the inquiry prepared. Please send the email to complete submission.";form.appendChild(note);
+ });
+}
+wireMailForm("producer-form","Nusantara Export Hub — Producer Registration");
+wireMailForm("rfq-form","Nusantara Export Hub — Buyer RFQ");
