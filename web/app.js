@@ -6,3 +6,13 @@ const products=[
 ];
 document.getElementById("year").textContent=new Date().getFullYear();
 document.getElementById("products").innerHTML=products.map(p=>'<article class="product '+(p.supplier==="KKMP Balai Gadang"?"featured-product":"")+'"><div class="product-image-wrap"><img class="product-image" src="'+p.image+'" alt="'+p.alt+'" loading="lazy" onerror="this.closest(\'.product-image-wrap\').classList.add(\'image-failed\');this.remove()">'+(p.illustrative?'<span class="image-note">Foto ilustrasi · bukan kemasan KKMP</span>':'')+'</div><div class="product-topline"><small>'+p.category+' · '+p.origin+'</small><span class="product-tag">'+p.tag+'</span></div><h3>'+p.name+'</h3><p>'+p.description+'</p><p><b>'+p.price+'</b></p><p class="supplier-line">Supplier: <strong>'+p.supplier+'</strong></p><a class="button" href="mailto:berbagisaja45@gmail.com?subject='+encodeURIComponent("Product inquiry: "+p.name+" — "+p.supplier)+'">Send inquiry ↗</a></article>').join("");
+
+const galoGallery=[
+{title:"Lebah Galo-galo",desc:"Lebah tanpa sengat yang bekerja di sekitar pintu sarang.",image:"https://thumb.braavo.me/birden/0/2543957042.jpg",alt:"Lebah tanpa sengat di sekitar kotak sarang"},
+{title:"Koloni dan sarang",desc:"Struktur sarang dan aktivitas koloni lebah.",image:"https://www.coffsnativebees.com.au/uploads/3/1/3/2/31326185/tetragonula-carbonaria-brood-spiral-tobias-smith-2014_orig.jpg",alt:"Koloni lebah tanpa sengat pada struktur brood spiral"},
+{title:"Stup budidaya",desc:"Kotak stup sebagai rumah koloni dalam budidaya lebah tanpa sengat.",image:"https://2.bp.blogspot.com/-E3G_cCf80qE/W9pI43cAHTI/AAAAAAAAB6g/y9iNOHSR75Mf-3eUCskDj6U2nqTo-cYXwCLcBGAs/s1600/Madu_Lombok_TRIGONA___Budidaya_Lebah_TRIGONA___1_L.jpg",alt:"Deretan stup kayu budidaya lebah trigona"},
+{title:"Panen madu",desc:"Madu diambil dari pot-pot penyimpanan di dalam sarang.",image:"https://agri.pnu.ac.th/agri/images/activityprofessor/26-05-65-padee/6.jpg",alt:"Proses pengambilan madu dari pot sarang lebah tanpa sengat"},
+{title:"Pot madu alami",desc:"Madu tersimpan dalam kantong-kantong kecil berbahan lilin dan resin.",image:"https://qaafi.uq.edu.au/files/75102/Tetragonula-honey-pots-2019.jpg",alt:"Pot-pot madu pada sarang Tetragonula"}
+];
+const gallery=document.getElementById("galo-gallery-grid");
+if(gallery) gallery.innerHTML=galoGallery.map(item=>'<article class="galo-gallery-card"><img src="'+item.image+'" alt="'+item.alt+'" loading="lazy" onerror="this.closest(\'.galo-gallery-card\').classList.add(\'gallery-image-failed\');this.remove()"><div><h3>'+item.title+'</h3><p>'+item.desc+'</p></div></article>').join("");
