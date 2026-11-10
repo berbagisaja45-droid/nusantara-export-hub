@@ -17,16 +17,59 @@ const galoGallery=[
 const gallery=document.getElementById("galo-gallery-grid");
 if(gallery) gallery.innerHTML=galoGallery.map(item=>'<article class="galo-gallery-card"><img src="'+item.image+'" alt="'+item.alt+'" loading="eager" onerror="this.closest(\'.galo-gallery-card\').classList.add(\'gallery-image-failed\');this.remove()"><div><h3>'+item.title+'</h3><p>'+item.desc+'</p>'+(item.credit?'<small>'+item.credit+' · <a href="'+item.source+'" target="_blank" rel="noopener">Sumber foto</a></small>':'')+'</div></article>').join("");
 
-/* MVP pilot contact forms: email hand-off until Supabase is connected. */
-function wireMailForm(formId, subjectPrefix) {
- const form=document.getElementById(formId); if(!form)return;
- form.addEventListener("submit",function(event){
-  event.preventDefault(); if(!form.reportValidity())return;
-  const values=new FormData(form), lines=[];
-  for(const [key,value] of values.entries())lines.push(key.replaceAll("_"," ")+": "+value);
-  window.location.href="mailto:berbagisaja45@gmail.com?subject="+encodeURIComponent(subjectPrefix)+"&body="+encodeURIComponent(lines.join("\n"));
-  const note=document.createElement("p");note.className="form-note";note.textContent="Your email application should open with the inquiry prepared. Please send the email to complete submission.";form.appendChild(note);
- });
+/* Supabase-connected MVP forms.
+   Public publishable key is intended for browser use; never place service_role here.
+   The Edge Function must be deployed with JWT verification disabled and server-side validation enabled. */
+const SUPABASE_URL = "https://qvbviaiwlgldxbnkpoyz.supabase.co";
+const SUPABASE_PUBLISHABLE_KEY = "sb_publishable_73V0_NwW1j5pZTTdq15mwQ_irBusD0u";
+const INTAKE_ENDPOINT = SUPABASE_URL + "/functions/v1/submit-intake";
+
+async function submitIntake(form, kind) {
+  if (!form.reportValidity()) return;
+  const button = form.querySelector('button[type="submit"]');
+  const originalText = button ? button.textContent : "";
+  if (button) { button.disabled = true; button.textContent = "Submitting..."; }
+  const data = Object.fromEntries(new FormData(form).entries());
+  delete data.website;
+  try {
+    const response = await fetch(INTAKE_ENDPOINT, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "apikey": SUPABASE_PUBLISHABLE_KEY
+      },
+      body: JSON.stringify({ type: kind, data, website: form.querySelector('[name="website"]')?.value || "" })
+    });
+    const result = await response.json().catch(() => ({}));
+    if (!response.ok) throw new Error(result.error || "Submission could not be completed.");
+    form.reset();
+    let note = form.querySelector(".form-note");
+    if (!note) { note = document.createElement("p"); note.className = "form-note"; form.appendChild(note); }
+    note.textContent = kind === "producer"
+      ? "Thank you. Your producer registration has been received for review."
+      : "Thank you. Your sourcing request has been received.";
+    note.setAttribute("role", "status");
+  } catch (error) {
+    let note = form.querySelector(".form-note");
+    if (!note) { note = document.createElement("p"); note.className = "form-note"; form.appendChild(note); }
+    note.textContent = "Online submission is not ready yet: " + error.message + " Please contact berbagisaja45@gmail.com.";
+    note.setAttribute("role", "alert");
+  } finally {
+    if (button) { button.disabled = false; button.textContent = originalText; }
+  }
 }
-wireMailForm("producer-form","Nusantara Export Hub — Producer Registration");
-wireMailForm("rfq-form","Nusantara Export Hub — Buyer RFQ");
+function wireIntakeForm(id, kind) {
+  const form = document.getElementById(id);
+  if (!form) return;
+  const trap = document.createElement("input");
+  trap.type = "text"; trap.name = "website"; trap.tabIndex = -1;
+  trap.autocomplete = "off"; trap.setAttribute("aria-hidden", "true");
+  trap.style.cssText = "position:absolute;left:-10000px;width:1px;height:1px";
+  form.appendChild(trap);
+  form.addEventListener("submit", event => {
+    event.preventDefault();
+    submitIntake(form, kind);
+  });
+}
+wireIntakeForm("producer-form", "producer");
+wireIntakeForm("rfq-form", "rfq");
