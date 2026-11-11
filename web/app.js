@@ -73,3 +73,38 @@ function wireIntakeForm(id, kind) {
 }
 wireIntakeForm("producer-form", "producer");
 wireIntakeForm("rfq-form", "rfq");
+
+
+/* Public producer directory: RLS returns verified profiles only. */
+async function loadVerifiedProducers() {
+  const target = document.getElementById("verified-producers");
+  if (!target) return;
+  try {
+    const response = await fetch(SUPABASE_URL + "/rest/v1/producers?select=id,business_name,regency_city,description&verification_status=eq.verified&order=business_name.asc", {
+      headers: { apikey: SUPABASE_PUBLISHABLE_KEY }
+    });
+    if (!response.ok) throw new Error("Could not load the supplier directory.");
+    const records = await response.json();
+    target.replaceChildren();
+    if (!records.length) {
+      const empty = document.createElement("p");
+      empty.textContent = "No producer profiles have been approved for publication yet. Please check again soon.";
+      target.appendChild(empty);
+      return;
+    }
+    records.forEach(p => {
+      const card = document.createElement("article");
+      card.className = "verified-producer-card";
+      const name = document.createElement("h3"); name.textContent = p.business_name;
+      const region = document.createElement("small"); region.textContent = p.regency_city;
+      const desc = document.createElement("p"); desc.textContent = p.description || "Local producer from West Sumatra.";
+      card.append(name, region, desc);
+      target.appendChild(card);
+    });
+  } catch (error) {
+    const msg = document.createElement("p");
+    msg.textContent = "Supplier directory is temporarily unavailable.";
+    target.replaceChildren(msg);
+  }
+}
+loadVerifiedProducers();
