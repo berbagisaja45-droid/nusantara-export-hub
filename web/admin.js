@@ -1,4 +1,4 @@
-const SUPABASE_URL="https://qbvbiaiwlgldxbnkpoyz.supabase.co";
+const SUPABASE_URL="https://qvbviaiwlgldxbnkpoyz.supabase.co";
 const KEY="sb_publishable_73V0_NwW1j5pZTTdq15mwQ_irBusD0u";
 const ENDPOINT=SUPABASE_URL+"/functions/v1/admin-api";
 let accessToken=null;
