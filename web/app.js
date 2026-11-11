@@ -20,7 +20,7 @@ if(gallery) gallery.innerHTML=galoGallery.map(item=>'<article class="galo-galler
 /* Supabase-connected MVP forms.
    Public publishable key is intended for browser use; never place service_role here.
    The Edge Function must be deployed with JWT verification disabled and server-side validation enabled. */
-const SUPABASE_URL = "https://qvbviaiwlgldxbnkpoyz.supabase.co";
+const SUPABASE_URL = "https://qbvbiaiwlgldxbnkpoyz.supabase.co";
 const SUPABASE_PUBLISHABLE_KEY = "sb_publishable_73V0_NwW1j5pZTTdq15mwQ_irBusD0u";
 const INTAKE_ENDPOINT = SUPABASE_URL + "/functions/v1/submit-intake";
 
