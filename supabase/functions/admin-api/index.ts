@@ -82,8 +82,8 @@ Deno.serve(async (req) => {
       "galo":["stingless","trigona","tetragonula"], trigona:["galo","stingless"], tetragonula:["galo","stingless"],
       arabica:["arabika"], arabika:["arabica"]
     };
-    const queryTerms = tokens(rfq.product_required);
-    const specsTerms = tokens(rfq.specifications);
+    const queryTerms = [...new Set(tokens(rfq.product_required))];
+    const specsTerms = [...new Set(tokens(rfq.specifications))];
     const quantity = (value: unknown) => {
       const match = String(value || "").match(/(\d+(?:[.,]\d+)?)\s*(kg|kilograms?|tons?|tonnes?|liters?|litres?|units?|pieces?|pcs)\b/i);
       return match ? { amount: Number(match[1].replace(",", ".")), unit: match[2].toLowerCase() } : null;
@@ -101,11 +101,18 @@ Deno.serve(async (req) => {
       const score = Math.min(100, Math.round(productRatio * 75 + specRatio * 15 + 10));
       const capacityTexts = [p.description,...ownProducts.map((item: Record<string, any>) => item.monthly_capacity)].filter(Boolean);
       const statedCapacity = capacityTexts.map(quantity).find(Boolean);
+      let capacityNote = statedCapacity
+        ? "Supplier-reported capacity: " + statedCapacity.amount + " " + statedCapacity.unit + "; confirm its time basis and availability."
+        : "Supplier capacity is not recorded in a comparable structured format; verify directly.";
+      const unitGroup = (unit: string) => /^(kg|kilogram|kilograms)$/.test(unit) ? "kg" : /^(ton|tons|tonne|tonnes)$/.test(unit) ? "ton" : /^(liter|liters|litre|litres)$/.test(unit) ? "liter" : "unit";
+      if (buyerQty && statedCapacity && unitGroup(buyerQty.unit) === unitGroup(statedCapacity.unit) && statedCapacity.amount < buyerQty.amount) {
+        capacityNote += " Reported supplier capacity is numerically below the requested quantity; confirm whether multiple production cycles or shipments can fulfill the order.";
+      }
       const notes = [
         "Preliminary match score: " + score + "/100.",
         "Product terms matched: " + hits.join(", ") + ".",
         specHits.length ? "Specification keywords found: " + specHits.join(", ") + "." : "Buyer specifications require manual verification.",
-        statedCapacity ? "Supplier-reported capacity: " + statedCapacity.amount + " " + statedCapacity.unit + "; confirm its time basis and availability." : "Supplier capacity is not recorded in a comparable structured format; verify directly."
+        capacityNote
       ].join(" ");
       return { rfq_id: rfqId, producer_id: p.id, match_notes: notes, status: priorStatus.get(p.id) || "suggested", _score: score };
     }).filter(Boolean).sort((a: any,b: any) => b._score - a._score);
