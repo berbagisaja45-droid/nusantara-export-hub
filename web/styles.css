@@ -55,3 +55,15 @@
 @media(max-width:700px){.producer-register{grid-template-columns:1fr;padding:20px}.producer-intro,.buyer-benefits{grid-template-columns:1fr}.hub-form{grid-template-columns:1fr}.rfq-form .full{grid-column:auto}.button-outline{margin:10px 0 0}}
 
 .verified-producers{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px;margin:24px 0}.verified-producer-card{border:1px solid #dce6d9;border-radius:7px;padding:20px;background:#fff}.verified-producer-card h3{font:22px Georgia;margin:0 0 8px;color:var(--green)}.verified-producer-card small{color:#71816f;font-weight:bold}.verified-producer-card p{font-size:13px}@media(max-width:700px){.verified-producers{grid-template-columns:1fr}}
+
+/* Product catalog submission and approved marketplace cards */
+.catalog-submit-panel{display:grid;grid-template-columns:.75fr 1.25fr;gap:32px;align-items:start;background:#fff;border:1px solid #e3e8e0;border-radius:8px;padding:26px;margin-top:24px}
+.catalog-submit-panel h3{font:26px Georgia;color:var(--green);margin-top:6px}
+.catalog-submit-panel>div p{font-size:13px;line-height:1.8}
+.catalog-review-note{padding:13px;background:#f4f7f0;border-left:3px solid var(--green)}
+#product-form{padding:20px;background:#f7f8f3;border-radius:6px}
+#product-form button{justify-self:start;border:0;cursor:pointer}
+#product-form select:disabled{background:#eef0ec;color:#6b756d}
+.catalog-product-details{font-size:12px;line-height:1.7;color:#526456}
+.database-product{border-color:#cbdcc8}
+@media(max-width:800px){.catalog-submit-panel{grid-template-columns:1fr;padding:20px}}
