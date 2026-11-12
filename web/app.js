@@ -74,6 +74,125 @@ function wireIntakeForm(id, kind) {
 wireIntakeForm("producer-form", "producer");
 wireIntakeForm("rfq-form", "rfq");
 
+/* Product catalog intake is isolated from the existing producer and buyer RFQ endpoint. */
+const PRODUCT_CATALOG_ENDPOINT = SUPABASE_URL + "/functions/v1/product-catalog";
+
+async function submitProduct(form) {
+  if (!form.reportValidity()) return;
+  const button = form.querySelector('button[type="submit"]');
+  const originalText = button ? button.textContent : "";
+  if (button) { button.disabled = true; button.textContent = "Submitting product..."; }
+  const data = Object.fromEntries(new FormData(form).entries());
+  delete data.website;
+  try {
+    const response = await fetch(PRODUCT_CATALOG_ENDPOINT, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", "apikey": SUPABASE_PUBLISHABLE_KEY },
+      body: JSON.stringify({ action: "submit_product", data, website: form.querySelector('[name="website"]')?.value || "" })
+    });
+    const result = await response.json().catch(() => ({}));
+    if (!response.ok) throw new Error(result.error || "Product submission could not be completed.");
+    form.reset();
+    const message = form.querySelector(".form-note");
+    if (message) {
+      message.textContent = "Product submitted successfully. It is now awaiting admin review before appearing in the public catalog.";
+      message.setAttribute("role", "status");
+    }
+    await loadVerifiedProducers();
+loadPublishedProducts();
+  } catch (error) {
+    let message = form.querySelector(".form-note");
+    if (!message) { message = document.createElement("p"); message.className = "form-note"; form.appendChild(message); }
+    message.textContent = "Product submission failed: " + error.message + " Please contact berbagisaja45@gmail.com.";
+    message.setAttribute("role", "alert");
+  } finally {
+    if (button) { button.disabled = false; button.textContent = originalText; }
+  }
+}
+function wireProductForm() {
+  const form = document.getElementById("product-form");
+  if (!form) return;
+  const trap = document.createElement("input");
+  trap.type = "text"; trap.name = "website"; trap.tabIndex = -1;
+  trap.autocomplete = "off"; trap.setAttribute("aria-hidden", "true");
+  trap.style.cssText = "position:absolute;left:-10000px;width:1px;height:1px";
+  form.appendChild(trap);
+  const producerSelect = document.getElementById("product-producer");
+  const originInput = form.elements.namedItem("origin_regency_city");
+  if (producerSelect && originInput) {
+    producerSelect.addEventListener("change", () => {
+      const option = producerSelect.selectedOptions[0];
+      if (option && option.dataset.region) originInput.value = option.dataset.region;
+    });
+  }
+  form.addEventListener("submit", event => {
+    event.preventDefault();
+    submitProduct(form);
+  });
+}
+wireProductForm();
+
+/* Only approved products belonging to approved suppliers are shown in the public catalog. */
+async function loadPublishedProducts() {
+  const target = document.getElementById("products");
+  if (!target) return;
+  try {
+    const query = "id,name,category,description,origin_regency_city,hs_code,moq,monthly_capacity,indicative_price,currency,specifications,certifications,image_urls,producers(business_name,regency_city)";
+    const response = await fetch(SUPABASE_URL + "/rest/v1/products?select=" + encodeURIComponent(query) + "&publication_status=eq.published&order=created_at.desc", {
+      headers: { apikey: SUPABASE_PUBLISHABLE_KEY }
+    });
+    if (!response.ok) throw new Error("Could not load approved catalog products.");
+    const records = await response.json();
+    records.forEach(product => {
+      const supplier = product.producers || {};
+      const card = document.createElement("article");
+      card.className = "product database-product";
+      const imageWrap = document.createElement("div");
+      imageWrap.className = "product-image-wrap";
+      const imageUrl = Array.isArray(product.image_urls) ? product.image_urls.find(value => /^https:\/\//i.test(value)) : null;
+      if (imageUrl) {
+        const image = document.createElement("img");
+        image.className = "product-image"; image.src = imageUrl; image.alt = product.name || "Product image";
+        image.loading = "lazy";
+        image.addEventListener("error", () => { imageWrap.classList.add("image-failed"); image.remove(); });
+        imageWrap.appendChild(image);
+      } else {
+        imageWrap.classList.add("image-failed");
+      }
+      card.appendChild(imageWrap);
+      const topline = document.createElement("div"); topline.className = "product-topline";
+      const origin = document.createElement("small"); origin.textContent = (product.category || "Product") + " · " + (product.origin_regency_city || supplier.regency_city || "Indonesia");
+      const tag = document.createElement("span"); tag.className = "product-tag"; tag.textContent = "Approved catalog";
+      topline.append(origin, tag); card.appendChild(topline);
+      const title = document.createElement("h3"); title.textContent = product.name || "Untitled product"; card.appendChild(title);
+      const description = document.createElement("p"); description.textContent = product.description || "Product details available on request."; card.appendChild(description);
+      const detailLines = [
+        product.hs_code ? "HS Code: " + product.hs_code : "",
+        product.moq ? "MOQ: " + product.moq : "",
+        product.monthly_capacity ? "Monthly capacity: " + product.monthly_capacity : "",
+        product.indicative_price ? "Indicative price: " + product.indicative_price + " " + (product.currency || "USD") : "",
+        Array.isArray(product.certifications) && product.certifications.length ? "Certifications: " + product.certifications.join(", ") : ""
+      ].filter(Boolean);
+      if (detailLines.length) {
+        const details = document.createElement("p"); details.className = "catalog-product-details";
+        details.textContent = detailLines.join(" · "); card.appendChild(details);
+      }
+      const supplierLine = document.createElement("p"); supplierLine.className = "supplier-line";
+      const supplierName = document.createElement("strong"); supplierName.textContent = supplier.business_name || "Verified supplier";
+      supplierLine.append("Supplier: ", supplierName); card.appendChild(supplierLine);
+      const inquiry = document.createElement("a"); inquiry.className = "button";
+      inquiry.href = "mailto:berbagisaja45@gmail.com?subject=" + encodeURIComponent("Product inquiry: " + product.name + " — " + (supplier.business_name || "Nusantara Export Hub"));
+      inquiry.textContent = "Send inquiry ↗"; card.appendChild(inquiry);
+      target.appendChild(card);
+    });
+  } catch (error) {
+    const note = document.createElement("p");
+    note.textContent = "Approved catalog products are temporarily unavailable.";
+    target.appendChild(note);
+  }
+}
+
+
 
 /* Public producer directory: RLS returns verified profiles only. */
 async function loadVerifiedProducers() {
@@ -85,6 +204,21 @@ async function loadVerifiedProducers() {
     });
     if (!response.ok) throw new Error("Could not load the supplier directory.");
     const records = await response.json();
+    const productProducerSelect = document.getElementById("product-producer");
+    if (productProducerSelect) {
+      productProducerSelect.replaceChildren();
+      const placeholder = document.createElement("option");
+      placeholder.value = ""; placeholder.textContent = records.length ? "Select your approved business" : "No approved suppliers available";
+      productProducerSelect.appendChild(placeholder);
+      records.forEach(producer => {
+        const option = document.createElement("option");
+        option.value = producer.id;
+        option.textContent = producer.business_name + " — " + producer.regency_city;
+        option.dataset.region = producer.regency_city || "";
+        productProducerSelect.appendChild(option);
+      });
+      productProducerSelect.disabled = !records.length;
+    }
     target.replaceChildren();
     if (!records.length) {
       const empty = document.createElement("p");
