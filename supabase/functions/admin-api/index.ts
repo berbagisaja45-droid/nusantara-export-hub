@@ -15,8 +15,8 @@ Deno.serve(async (req) => {
   const url = Deno.env.get("SUPABASE_URL");
   const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
   const adminEmail = (Deno.env.get("ADMIN_EMAIL") || "").trim().toLowerCase();
-  const publishableKey = Deno.env.get("SUPABASE_ANON_KEY") || Deno.env.get("SUPABASE_PUBLISHABLE_KEY");
-  const token = (req.headers.get("authorization") || "").replace(/^Bearer\\s+/i, "");
+  const publishableKey = req.headers.get("apikey") || Deno.env.get("SUPABASE_ANON_KEY") || Deno.env.get("SUPABASE_PUBLISHABLE_KEY");
+  const token = (req.headers.get("authorization") || "").replace(/^Bearer\s+/i, "");
   if (!url || !serviceKey || !adminEmail || !publishableKey || !token) return reply(500, { error: "Admin API is not configured" });
 
   const auth = await fetch(url + "/auth/v1/user", { headers: { apikey: publishableKey, Authorization: "Bearer " + token } });
