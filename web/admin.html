@@ -18,6 +18,10 @@
 .match-card small{color:#69776e}
 .match-card p{font-size:12px;line-height:1.5;margin:0}
 @media(max-width:800px){.match-card{grid-template-columns:1fr 1fr}.match-card p{grid-column:1/-1}}
+.product-kpis{grid-template-columns:repeat(3,minmax(0,1fr))}
+#product-panel .admin-table{min-width:1080px}
+@media(max-width:560px){.product-kpis{grid-template-columns:repeat(2,minmax(0,1fr))}}
+
 
 
 </style></head><body><header><a class="brand" href="index.html">NUSANTARA <b>EXPORT HUB</b></a><nav><a href="index.html">Public website</a></nav></header>
@@ -33,7 +37,7 @@
  <div><small>Matched / introduced</small><strong id="kpi-rfq-matched">0</strong></div>
  <div><small>Closed / rejected</small><strong id="kpi-rfq-closed">0</strong></div>
 </div>
-<div class="admin-tabs"><button id="tab-producers" class="active" type="button">Producers</button><button id="tab-rfqs" type="button">Buyer RFQs</button></div>
+<div class="admin-tabs"><button id="tab-producers" class="active" type="button">Producers</button><button id="tab-rfqs" type="button">Buyer RFQs</button><button id="tab-products" type="button">Product Catalog</button></div>
 <section id="producer-panel"><h2 class="section-title">Producer applications</h2><div style="overflow-x:auto"><table class="admin-table"><thead><tr><th>Business</th><th>Region</th><th>Contact</th><th>Description</th><th>Status</th><th>Review</th></tr></thead><tbody id="producer-rows"></tbody></table></div></section>
 <section id="rfq-panel" class="hidden"><h2 class="section-title">Buyer requests for quotation</h2><p>Update the pipeline status after reviewing and contacting the buyer. Status changes are saved to Supabase.</p>
 <div class="rfq-tools">
@@ -46,4 +50,16 @@
  </select>
 </div>
 <p id="rfq-result-count" class="rfq-result-count" aria-live="polite">0 requests shown.</p><div style="overflow-x:auto"><table class="admin-table"><thead><tr><th>Buyer / contact</th><th>Destination</th><th>Product required</th><th>Quantity</th><th>Timeline & specs</th><th>Submitted</th><th>Pipeline status</th><th>Supplier matching</th></tr></thead><tbody id="rfq-rows"></tbody></table></div></section>
-</section></main><script src="admin.js?v=20261112-6"></script></body></html>
+<section id="product-panel" class="hidden">
+ <h2 class="section-title">Product catalog submissions</h2>
+ <p>Review product details submitted by approved suppliers. Only products from verified suppliers can be published to the public marketplace.</p>
+ <div class="admin-kpis product-kpis">
+  <div><small>Total products</small><strong id="kpi-product-total">0</strong></div>
+  <div><small>Pending review</small><strong id="kpi-product-pending">0</strong></div>
+  <div><small>Published</small><strong id="kpi-product-published">0</strong></div>
+ </div>
+ <div class="rfq-tools"><input id="product-search" type="search" placeholder="Search product, supplier, HS Code..." aria-label="Search product catalog"></div>
+ <p id="product-result-count" class="rfq-result-count" aria-live="polite">0 products shown.</p>
+ <div style="overflow-x:auto"><table class="admin-table"><thead><tr><th>Product</th><th>Supplier / region</th><th>Category</th><th>HS Code</th><th>MOQ / capacity</th><th>Indicative price</th><th>Submitted</th><th>Publication status</th></tr></thead><tbody id="product-rows"></tbody></table></div>
+</section>
+</section></main><script src="admin.js?v=20261112-7"></script></body></html>
