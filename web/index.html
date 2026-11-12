@@ -7,12 +7,13 @@
 <section id="product-submit" class="section muted">
  <small>SUPPLIER PRODUCT CATALOG</small>
  <h2>Submit a product for catalog review</h2>
- <p>Only approved suppliers can submit products. Every submission is reviewed by the Nusantara Export Hub admin before it becomes visible to buyers.</p>
+ <p>Only approved suppliers can submit products. Enter the same email or WhatsApp contact registered for your supplier profile. Every submission is reviewed by the Nusantara Export Hub admin before becoming visible to buyers.</p>
  <div class="catalog-submit-panel">
   <div><h3>Prepare your product information</h3><p>Provide accurate trade details, capacity, minimum order, quality specifications and supporting certifications. Do not publish unverified claims or certificates.</p><p class="catalog-review-note">New submissions enter the Pending review queue. Approval does not itself constitute an export certification or a confirmed offer.</p></div>
   <form id="product-form" class="hub-form">
    <label>Approved supplier<select id="product-producer" name="producer_id" required><option value="">Loading approved suppliers...</option></select></label>
    <label>Product name<input name="name" required maxlength="160" placeholder="e.g. Galo-galo Honey"></label>
+   <label>Registered supplier email / WhatsApp<input name="supplier_contact" required placeholder="Must match registered supplier contact"></label>
    <label>Product category<select name="category" required><option value="">Select category</option><option>Coffee & Cocoa</option><option>Honey & Natural Products</option><option>Spices</option><option>Coconut & Derivatives</option><option>Agriculture</option><option>Fisheries</option><option>Processed Foods</option><option>Other</option></select></label>
    <label>Product origin<input name="origin_regency_city" placeholder="e.g. Balai Gadang, Padang"></label>
    <label class="full">Product description<textarea name="description" rows="3" required maxlength="3000" placeholder="Variety, processing method, harvest or production details..."></textarea></label>
