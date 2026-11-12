@@ -2,6 +2,7 @@ const SUPABASE_URL = "https://qbvbiaiwlgldxbnkpoyz.supabase.co";
 const KEY="sb_publishable_73V0_NwW1j5pZTTdq15mwQ_irBusD0u";
 const ENDPOINT=SUPABASE_URL+"/functions/v1/admin-api";
 let accessToken=null;
+let rfqRecords=[];
 const $=id=>document.getElementById(id);
 const RFQ_STATUSES=[["new","New"],["reviewing","Reviewing"],["matched","Matched"],["introduced","Introduced"],["closed","Closed"],["rejected","Rejected"]];
 function note(id,msg){$(id).textContent=msg;}
@@ -33,22 +34,58 @@ async function loadProducers(){
  }catch(err){note("admin-note",err.message);}
 }
 async function reviewProducer(id,status){if(!confirm("Change producer status to "+status+"?"))return;try{await api("POST",{id,status});await loadProducers();}catch(err){note("admin-note",err.message);}}
+function updateRfqSummary(){
+ const count=status=>rfqRecords.filter(q=>q.status===status).length;
+ $("kpi-rfq-total").textContent=String(rfqRecords.length);
+ $("kpi-rfq-new").textContent=String(count("new"));
+ $("kpi-rfq-reviewing").textContent=String(count("reviewing"));
+ $("kpi-rfq-matched").textContent=String(count("matched")+count("introduced"));
+ $("kpi-rfq-closed").textContent=String(count("closed")+count("rejected"));
+}
+function renderRfqs(){
+ const rows=$("rfq-rows");rows.replaceChildren();
+ const query=($("rfq-search").value||"").trim().toLowerCase();
+ const statusFilter=$("rfq-status-filter").value||"all";
+ const filtered=rfqRecords.filter(q=>{
+  const searchable=[q.buyer_company,q.contact_name,q.email,q.destination_country,q.product_required,q.quantity,q.target_timeline,q.specifications].filter(Boolean).join(" ").toLowerCase();
+  return (!query||searchable.includes(query))&&(statusFilter==="all"||q.status===statusFilter);
+ });
+ for(const q of filtered){
+  const tr=document.createElement("tr");
+  addCell(tr,[q.buyer_company,q.contact_name,q.email].filter(Boolean).join(" · "));
+  addCell(tr,q.destination_country);addCell(tr,q.product_required);addCell(tr,q.quantity);
+  addCell(tr,[q.target_timeline,q.specifications].filter(Boolean).join(" | "));
+  addCell(tr,q.created_at?new Date(q.created_at).toLocaleString():"—");
+  const td=document.createElement("td"),select=document.createElement("select");select.className="admin-select";
+  RFQ_STATUSES.forEach(([value,label])=>{const opt=document.createElement("option");opt.value=value;opt.textContent=label;select.appendChild(opt);});
+  select.value=RFQ_STATUSES.some(([v])=>v===q.status)?q.status:"new";
+  select.addEventListener("change",()=>updateRfq(q.id,select.value,select));td.appendChild(select);tr.appendChild(td);rows.appendChild(tr);
+ }
+ if(!filtered.length){const tr=document.createElement("tr"),td=addCell(tr,"No buyer requests match this filter.");td.colSpan=7;rows.appendChild(tr);}
+ $("rfq-result-count").textContent=filtered.length+" of "+rfqRecords.length+" request(s) shown.";
+}
 async function loadRfqs(){
- try{const j=await api("GET",null,"rfqs");const rows=$("rfq-rows");rows.replaceChildren();
-  for(const q of j.rfqs||[]){const tr=document.createElement("tr");
-   addCell(tr,[q.buyer_company,q.contact_name,q.email].filter(Boolean).join(" · "));
-   addCell(tr,q.destination_country);addCell(tr,q.product_required);addCell(tr,q.quantity);
-   addCell(tr,[q.target_timeline,q.specifications].filter(Boolean).join(" | "));
-   addCell(tr,q.created_at?new Date(q.created_at).toLocaleString():"—");
-   const td=document.createElement("td"),select=document.createElement("select");select.className="admin-select";
-   RFQ_STATUSES.forEach(([value,label])=>{const opt=document.createElement("option");opt.value=value;opt.textContent=label;select.appendChild(opt);});
-   select.value=RFQ_STATUSES.some(([v])=>v===q.status)?q.status:"new";
-   select.addEventListener("change",()=>updateRfq(q.id,select.value,select));td.appendChild(select);tr.appendChild(td);rows.appendChild(tr);
-  }
-  note("admin-note",(j.rfqs||[]).length+" buyer RFQ record(s) loaded from Supabase.");
+ try{
+  const j=await api("GET",null,"rfqs");rfqRecords=j.rfqs||[];
+  updateRfqSummary();renderRfqs();
+  note("admin-note",rfqRecords.length+" buyer RFQ record(s) loaded from Supabase.");
  }catch(err){note("admin-note","RFQ: "+err.message);}
 }
-async function updateRfq(id,status,select){select.disabled=true;try{await api("POST",{action:"update_rfq",id,status});note("admin-note","RFQ status updated to "+status+".");}catch(err){note("admin-note",err.message);await loadRfqs();}finally{select.disabled=false;}}
+async function updateRfq(id,status,select){
+ select.disabled=true;
+ try{
+  await api("POST",{action:"update_rfq",id,status});
+  const refreshed=await api("GET",null,"rfqs");
+  rfqRecords=refreshed.rfqs||[];
+  const saved=rfqRecords.find(q=>q.id===id);
+  if(!saved||saved.status!==status)throw new Error("Supabase has not confirmed the new status. Please refresh and try again.");
+  updateRfqSummary();renderRfqs();
+  note("admin-note","RFQ status saved and verified in Supabase: "+status+".");
+ }catch(err){note("admin-note",err.message);await loadRfqs();}
+ finally{if(select.isConnected)select.disabled=false;}
+}
+$("rfq-search").addEventListener("input",renderRfqs);
+$("rfq-status-filter").addEventListener("change",renderRfqs);
 $("tab-producers").addEventListener("click",()=>{ $("producer-panel").classList.remove("hidden");$("rfq-panel").classList.add("hidden");$("tab-producers").classList.add("active");$("tab-rfqs").classList.remove("active");});
 $("tab-rfqs").addEventListener("click",()=>{ $("rfq-panel").classList.remove("hidden");$("producer-panel").classList.add("hidden");$("tab-rfqs").classList.add("active");$("tab-producers").classList.remove("active");loadRfqs();});
 $("refresh").addEventListener("click",()=>Promise.all([loadProducers(),loadRfqs()]));
