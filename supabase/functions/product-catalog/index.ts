@@ -47,7 +47,7 @@ Deno.serve(async (req) => {
       return reply(403, { error: "Admin access required" });
     }
     const response = await fetch(
-      url + "/rest/v1/products?select=id,producer_id,name,category,description,origin_regency_city,hs_code,moq,monthly_capacity,indicative_price,currency,specifications,certifications,image_urls,publication_status,created_at,producers(business_name,regency_city)&order=created_at.desc",
+      url + "/rest/v1/products?select=id,producer_id,name,category,description,origin_regency_city,hs_code,moq,monthly_capacity,indicative_price,currency,specifications,certifications,image_urls,publication_status,created_at,producers(business_name,regency_city,contact_person,email,phone_whatsapp)&order=created_at.desc",
       { headers }
     );
     if (!response.ok) {
@@ -69,6 +69,7 @@ Deno.serve(async (req) => {
     const name = clean(data.name, 160);
     const category = clean(data.category, 100);
     const description = clean(data.description, 3000);
+    const supplierContact = clean(data.supplier_contact, 180);
     const origin = clean(data.origin_regency_city, 100);
     const hsCode = clean(data.hs_code, 24);
     const moq = clean(data.moq, 120);
@@ -76,8 +77,8 @@ Deno.serve(async (req) => {
     const price = clean(data.indicative_price, 120);
     const currency = clean(data.currency, 3).toUpperCase() || "USD";
 
-    if (!isUuid(producerId) || !name || !category || !description) {
-      return reply(400, { error: "Please choose an approved supplier and complete product name, category and description" });
+    if (!isUuid(producerId) || !name || !category || !description || !supplierContact) {
+      return reply(400, { error: "Choose an approved supplier and complete product name, category, description and registered supplier contact" });
     }
     if (hsCode && !/^[0-9. -]{4,16}$/.test(hsCode)) {
       return reply(400, { error: "HS Code format is invalid" });
@@ -87,13 +88,22 @@ Deno.serve(async (req) => {
     }
 
     const producerResponse = await fetch(
-      url + "/rest/v1/producers?id=eq." + encodeURIComponent(producerId) + "&select=id,verification_status,regency_city",
+      url + "/rest/v1/producers?id=eq." + encodeURIComponent(producerId) + "&select=id,verification_status,regency_city,email,phone_whatsapp",
       { headers }
     );
     if (!producerResponse.ok) return reply(500, { error: "Could not verify supplier profile" });
     const producerRows = await producerResponse.json();
     if (!producerRows.length || producerRows[0].verification_status !== "verified") {
       return reply(403, { error: "Only approved suppliers can submit products to the catalog" });
+    }
+    const registeredEmail = String(producerRows[0].email || "").trim().toLowerCase();
+    const registeredPhone = String(producerRows[0].phone_whatsapp || "").replace(/\D/g, "");
+    const suppliedEmail = supplierContact.trim().toLowerCase();
+    const suppliedPhone = supplierContact.replace(/\D/g, "");
+    const contactMatches = (registeredEmail && suppliedEmail === registeredEmail) ||
+      (registeredPhone && suppliedPhone.length >= 8 && suppliedPhone === registeredPhone);
+    if (!contactMatches) {
+      return reply(403, { error: "Supplier contact does not match the email or WhatsApp registered for this business" });
     }
 
     const certRaw = clean(data.certifications, 1000);
