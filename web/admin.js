@@ -33,6 +33,37 @@ function updateProductSummary(){
  $("kpi-product-pending").textContent=String(productRecords.filter(p=>p.publication_status==="pending").length);
  $("kpi-product-published").textContent=String(productRecords.filter(p=>p.publication_status==="published").length);
 }
+
+function toggleProductDetails(product,row,button){
+ const current=row.nextElementSibling;
+ if(current&&current.classList.contains("product-detail-row")){current.remove();button.textContent="View details";return;}
+ const detail=document.createElement("tr");detail.className="product-detail-row";
+ const cell=document.createElement("td");cell.colSpan=9;
+ const panel=document.createElement("div");panel.className="product-detail-panel";
+ const heading=document.createElement("h3");heading.textContent=product.name+" — submission details";panel.appendChild(heading);
+ const description=document.createElement("p");description.textContent=product.description||"No description supplied.";panel.appendChild(description);
+ const specs=product.specifications||{};
+ const items=[
+  ["Origin",product.origin_regency_city],["Grade",specs.grade],["Packaging",specs.packaging],
+  ["Shelf life",specs.shelf_life],["Quality standard",specs.quality_standard],
+  ["Storage conditions",specs.storage_conditions],["Additional notes",specs.additional_notes],
+  ["Certifications claimed",Array.isArray(product.certifications)?product.certifications.join(", "):""]
+ ].filter(item=>item[1]);
+ const list=document.createElement("dl");list.className="product-detail-list";
+ items.forEach(([label,value])=>{const term=document.createElement("dt");term.textContent=label;const description=document.createElement("dd");description.textContent=value;list.append(term,description);});
+ panel.appendChild(list);
+ const images=Array.isArray(product.image_urls)?product.image_urls:[];
+ const imageHeading=document.createElement("strong");imageHeading.textContent="Product image links";panel.appendChild(imageHeading);
+ if(images.length){
+  const imageList=document.createElement("ul");
+  images.forEach((url,index)=>{const li=document.createElement("li"),link=document.createElement("a");link.href=url;link.target="_blank";link.rel="noopener noreferrer";link.textContent="Open product image "+(index+1);li.appendChild(link);imageList.appendChild(li);});
+  panel.appendChild(imageList);
+ }else{
+  const noImage=document.createElement("p");noImage.textContent="No product image supplied.";panel.appendChild(noImage);
+ }
+ const caution=document.createElement("p");caution.className="product-review-caution";caution.textContent="Certification names and specifications are supplier-provided claims. Check supporting documents and contact the registered supplier before publication.";panel.appendChild(caution);
+ cell.appendChild(panel);detail.appendChild(cell);row.after(detail);button.textContent="Hide details";
+}
 function renderProducts(){
  const rows=$("product-rows");rows.replaceChildren();
  const query=($("product-search").value||"").trim().toLowerCase();
@@ -49,13 +80,15 @@ function renderProducts(){
   addCell(tr,[p.moq?"MOQ: "+p.moq:"",p.monthly_capacity?"Capacity: "+p.monthly_capacity:""].filter(Boolean).join(" | ")||"—");
   addCell(tr,p.indicative_price?[p.indicative_price,p.currency||"USD"].join(" "):"—");
   addCell(tr,p.created_at?new Date(p.created_at).toLocaleString():"—");
+  const detailTd=document.createElement("td"),detailButton=document.createElement("button");detailButton.type="button";detailButton.className="button match-button";detailButton.textContent="View details";
+  detailButton.addEventListener("click",()=>toggleProductDetails(p,tr,detailButton));detailTd.appendChild(detailButton);tr.appendChild(detailTd);
   const td=document.createElement("td"),select=document.createElement("select");select.className="admin-select";
   [["pending","Pending review"],["draft","Draft"],["published","Published"],["archived","Archived"]].forEach(([value,label])=>{const option=document.createElement("option");option.value=value;option.textContent=label;select.appendChild(option);});
   select.value=p.publication_status||"pending";
   select.addEventListener("change",()=>updateProductStatus(p.id,select.value,select));
   td.appendChild(select);tr.appendChild(td);rows.appendChild(tr);
  }
- if(!filtered.length){const tr=document.createElement("tr"),td=addCell(tr,"No product submissions match this search.");td.colSpan=8;rows.appendChild(tr);}
+ if(!filtered.length){const tr=document.createElement("tr"),td=addCell(tr,"No product submissions match this search.");td.colSpan=9;rows.appendChild(tr);}
  $("product-result-count").textContent=filtered.length+" of "+productRecords.length+" product(s) shown.";
 }
 async function loadProducts(){
@@ -133,7 +166,7 @@ function renderRfqs(){
   const matchButton=document.createElement("button");matchButton.type="button";matchButton.className="button match-button";matchButton.textContent="Find suppliers";
   matchButton.addEventListener("click",()=>showMatches(q, tr, matchButton));matchTd.appendChild(matchButton);tr.appendChild(matchTd);rows.appendChild(tr);
  }
- if(!filtered.length){const tr=document.createElement("tr"),td=addCell(tr,"No buyer requests match this filter.");td.colSpan=7;rows.appendChild(tr);}
+ if(!filtered.length){const tr=document.createElement("tr"),td=addCell(tr,"No buyer requests match this filter.");td.colSpan=8;rows.appendChild(tr);}
  $("rfq-result-count").textContent=filtered.length+" of "+rfqRecords.length+" request(s) shown.";
 }
 async function loadRfqs(){
