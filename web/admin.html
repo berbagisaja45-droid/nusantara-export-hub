@@ -21,6 +21,15 @@
 .product-kpis{grid-template-columns:repeat(3,minmax(0,1fr))}
 #product-panel .admin-table{min-width:1080px}
 @media(max-width:560px){.product-kpis{grid-template-columns:repeat(2,minmax(0,1fr))}}
+.product-detail-row td{background:#f7f8f3;padding:16px}
+.product-detail-panel{background:#fff;border:1px solid #e3e8e0;border-radius:6px;padding:16px;line-height:1.6}
+.product-detail-panel h3{font:22px Georgia;color:#1e5039;margin:0 0 8px}
+.product-detail-list{display:grid;grid-template-columns:180px 1fr;gap:5px 12px;font-size:13px}
+.product-detail-list dt{font-weight:bold;color:#526456}
+.product-detail-list dd{margin:0}
+.product-review-caution{margin-top:12px;padding:10px;background:#fff7e6;border-left:3px solid #b48a35;font-size:12px}
+@media(max-width:650px){.product-detail-list{grid-template-columns:1fr;gap:2px}.product-detail-list dd{margin-bottom:8px}}
+
 
 
 
@@ -60,6 +69,6 @@
  </div>
  <div class="rfq-tools"><input id="product-search" type="search" placeholder="Search product, supplier, HS Code..." aria-label="Search product catalog"></div>
  <p id="product-result-count" class="rfq-result-count" aria-live="polite">0 products shown.</p>
- <div style="overflow-x:auto"><table class="admin-table"><thead><tr><th>Product</th><th>Supplier / region / contact</th><th>Category</th><th>HS Code</th><th>MOQ / capacity</th><th>Indicative price</th><th>Submitted</th><th>Publication status</th></tr></thead><tbody id="product-rows"></tbody></table></div>
+ <div style="overflow-x:auto"><table class="admin-table"><thead><tr><th>Product</th><th>Supplier / region / contact</th><th>Category</th><th>HS Code</th><th>MOQ / capacity</th><th>Indicative price</th><th>Submitted</th><th>Details</th><th>Publication status</th></tr></thead><tbody id="product-rows"></tbody></table></div>
 </section>
-</section></main><script src="admin.js?v=20261112-7"></script></body></html>
+</section></main><script src="admin.js?v=20261112-8"></script></body></html>
