@@ -85,7 +85,7 @@ Deno.serve(async (req) => {
     const queryTerms = tokens(rfq.product_required);
     const specsTerms = tokens(rfq.specifications);
     const quantity = (value: unknown) => {
-      const match = String(value || "").match(/(\d+(?:[.,]\d+)?)\\s*(kg|kilograms?|tons?|tonnes?|liters?|litres?|units?|pieces?|pcs)\b/i);
+      const match = String(value || "").match(/(\d+(?:[.,]\d+)?)\s*(kg|kilograms?|tons?|tonnes?|liters?|litres?|units?|pieces?|pcs)\b/i);
       return match ? { amount: Number(match[1].replace(",", ".")), unit: match[2].toLowerCase() } : null;
     };
     const buyerQty = quantity(rfq.quantity);
