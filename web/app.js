@@ -241,3 +241,4 @@ async function loadVerifiedProducers() {
   }
 }
 loadVerifiedProducers();
+loadPublishedProducts();
