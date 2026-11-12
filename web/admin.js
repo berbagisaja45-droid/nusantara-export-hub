@@ -1,15 +1,23 @@
 const SUPABASE_URL = "https://qbvbiaiwlgldxbnkpoyz.supabase.co";
 const KEY="sb_publishable_73V0_NwW1j5pZTTdq15mwQ_irBusD0u";
 const ENDPOINT=SUPABASE_URL+"/functions/v1/admin-api";
+const MATCHING_ENDPOINT=SUPABASE_URL+"/functions/v1/rfq-matching";
 let accessToken=null;
 let rfqRecords=[];
 const $=id=>document.getElementById(id);
 const RFQ_STATUSES=[["new","New"],["reviewing","Reviewing"],["matched","Matched"],["introduced","Introduced"],["closed","Closed"],["rejected","Rejected"]];
 function note(id,msg){$(id).textContent=msg;}
 async function api(method="GET",body=null,resource="producers"){
- const url=method==="GET"&&resource==="rfqs"?ENDPOINT+"?resource=rfqs":method==="GET"&&resource.startsWith("matches:")?ENDPOINT+"?resource=matches&rfq_id="+encodeURIComponent(resource.slice(8)):ENDPOINT;
+ const url=method==="GET"&&resource==="rfqs"?ENDPOINT+"?resource=rfqs":ENDPOINT;
  const r=await fetch(url,{method,headers:{apikey:KEY,Authorization:"Bearer "+accessToken,"Content-Type":"application/json"},...(body?{body:JSON.stringify(body)}:{})});
  const j=await r.json().catch(()=>({}));if(!r.ok)throw new Error(j.error||"Request failed");return j;
+}
+async function matchingApi(method="GET",body=null,rfqId=null){
+ const url=method==="GET"?MATCHING_ENDPOINT+"?rfq_id="+encodeURIComponent(rfqId||""):MATCHING_ENDPOINT;
+ const r=await fetch(url,{method,headers:{apikey:KEY,Authorization:"Bearer "+accessToken,"Content-Type":"application/json"},...(body?{body:JSON.stringify(body)}:{})});
+ const j=await r.json().catch(()=>({}));
+ if(!r.ok)throw new Error(j.error||"Supplier matching request failed");
+ return j;
 }
 $("login-form").addEventListener("submit",async e=>{
  e.preventDefault();const f=new FormData(e.currentTarget);
@@ -93,8 +101,8 @@ async function showMatches(rfq, row, button){
  if(existing&&existing.classList.contains("match-detail-row")){existing.remove();button.textContent="Find suppliers";return;}
  button.disabled=true;button.textContent="Matching...";
  try{
-  await api("POST",{action:"run_matching",rfq_id:rfq.id});
-  const result=await api("GET",null,"matches:"+rfq.id);
+  await matchingApi("POST",{action:"run_matching",rfq_id:rfq.id});
+  const result=await matchingApi("GET",null,rfq.id);
   const detail=document.createElement("tr");detail.className="match-detail-row";
   const cell=document.createElement("td");cell.colSpan=8;
   const wrap=document.createElement("div");wrap.className="match-detail";
@@ -111,7 +119,7 @@ async function showMatches(rfq, row, button){
    const status=document.createElement("select");status.className="admin-select";
    [["suggested","Suggested"],["contacted","Contacted"],["accepted","Accepted"],["declined","Declined"]].forEach(([v,label])=>{const opt=document.createElement("option");opt.value=v;opt.textContent=label;status.appendChild(opt);});
    status.value=m.status||"suggested";
-   status.addEventListener("change",async()=>{status.disabled=true;try{await api("POST",{action:"update_match",id:m.id,status:status.value});note("admin-note","Supplier match updated: "+status.options[status.selectedIndex].text+".");}catch(err){note("admin-note",err.message);status.value=m.status||"suggested";}finally{status.disabled=false;}});
+   status.addEventListener("change",async()=>{status.disabled=true;try{await matchingApi("POST",{action:"update_match",id:m.id,status:status.value});note("admin-note","Supplier match updated: "+status.options[status.selectedIndex].text+".");}catch(err){note("admin-note",err.message);status.value=m.status||"suggested";}finally{status.disabled=false;}});
    card.appendChild(status);wrap.appendChild(card);
   });
   cell.appendChild(wrap);detail.appendChild(cell);row.after(detail);
