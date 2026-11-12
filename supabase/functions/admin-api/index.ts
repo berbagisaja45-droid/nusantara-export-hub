@@ -73,9 +73,9 @@ Deno.serve(async (req) => {
     const existing = await existingResponse.json();
     const priorStatus = new Map(existing.map((m: Record<string, string>) => [m.producer_id, m.status]));
 
-    const normalize = (value: unknown) => String(value || "").toLowerCase().normalize("NFKD").replace(/\\p{Diacritic}/gu, "").replace(/[^a-z0-9]+/g, " ").trim();
+    const normalize = (value: unknown) => String(value || "").toLowerCase().normalize("NFKD").replace(/\p{Diacritic}/gu, "").replace(/[^a-z0-9]+/g, " ").trim();
     const stop = new Set(["the","and","for","with","from","of","a","an","to","in","on","by","export","quality","food","grade","please","buyer","product","required","monthly","capacity","main","estimated","kg","kgs","ton","tons","per","month","bulan"]);
-    const tokens = (value: unknown) => normalize(value).split(/\\s+/).filter((w: string) => w.length > 1 && !stop.has(w));
+    const tokens = (value: unknown) => normalize(value).split(/\s+/).filter((w: string) => w.length > 1 && !stop.has(w));
     const alias: Record<string,string[]> = {
       madu:["honey"], honey:["madu"], kopi:["coffee"], coffee:["kopi"], cinnamon:["kayu","manis"], kayu:["cinnamon"], manis:["cinnamon"],
       rempah:["spice","spices"], spice:["rempah"], spices:["rempah"], kakao:["cocoa"], cocoa:["kakao"],
@@ -85,7 +85,7 @@ Deno.serve(async (req) => {
     const queryTerms = tokens(rfq.product_required);
     const specsTerms = tokens(rfq.specifications);
     const quantity = (value: unknown) => {
-      const match = String(value || "").match(/(\\d+(?:[.,]\\d+)?)\\s*(kg|kilograms?|tons?|tonnes?|liters?|litres?|units?|pieces?|pcs)\\b/i);
+      const match = String(value || "").match(/(\d+(?:[.,]\d+)?)\\s*(kg|kilograms?|tons?|tonnes?|liters?|litres?|units?|pieces?|pcs)\b/i);
       return match ? { amount: Number(match[1].replace(",", ".")), unit: match[2].toLowerCase() } : null;
     };
     const buyerQty = quantity(rfq.quantity);
