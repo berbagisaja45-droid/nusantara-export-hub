@@ -99,7 +99,6 @@ async function submitProduct(form) {
       message.setAttribute("role", "status");
     }
     await loadVerifiedProducers();
-loadPublishedProducts();
   } catch (error) {
     let message = form.querySelector(".form-note");
     if (!message) { message = document.createElement("p"); message.className = "form-note"; form.appendChild(message); }
