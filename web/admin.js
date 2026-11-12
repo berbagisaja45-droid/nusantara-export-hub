@@ -2,8 +2,10 @@ const SUPABASE_URL = "https://qbvbiaiwlgldxbnkpoyz.supabase.co";
 const KEY="sb_publishable_73V0_NwW1j5pZTTdq15mwQ_irBusD0u";
 const ENDPOINT=SUPABASE_URL+"/functions/v1/admin-api";
 const MATCHING_ENDPOINT=SUPABASE_URL+"/functions/v1/rfq-matching";
+const PRODUCT_CATALOG_ENDPOINT=SUPABASE_URL+"/functions/v1/product-catalog";
 let accessToken=null;
 let rfqRecords=[];
+let productRecords=[];
 const $=id=>document.getElementById(id);
 const RFQ_STATUSES=[["new","New"],["reviewing","Reviewing"],["matched","Matched"],["introduced","Introduced"],["closed","Closed"],["rejected","Rejected"]];
 function note(id,msg){$(id).textContent=msg;}
@@ -19,6 +21,65 @@ async function matchingApi(method="GET",body=null,rfqId=null){
  if(!r.ok)throw new Error(j.error||"Supplier matching request failed");
  return j;
 }
+
+async function productCatalogApi(method="GET",body=null){
+ const r=await fetch(PRODUCT_CATALOG_ENDPOINT,{method,headers:{apikey:KEY,Authorization:"Bearer "+accessToken,"Content-Type":"application/json"},...(body?{body:JSON.stringify(body)}:{})});
+ const j=await r.json().catch(()=>({}));
+ if(!r.ok)throw new Error(j.error||"Product catalog request failed");
+ return j;
+}
+function updateProductSummary(){
+ $("kpi-product-total").textContent=String(productRecords.length);
+ $("kpi-product-pending").textContent=String(productRecords.filter(p=>p.publication_status==="pending").length);
+ $("kpi-product-published").textContent=String(productRecords.filter(p=>p.publication_status==="published").length);
+}
+function renderProducts(){
+ const rows=$("product-rows");rows.replaceChildren();
+ const query=($("product-search").value||"").trim().toLowerCase();
+ const filtered=productRecords.filter(p=>{
+  const supplier=p.producers||{};
+  const haystack=[p.name,p.category,p.hs_code,p.moq,p.monthly_capacity,p.indicative_price,supplier.business_name,supplier.regency_city].filter(Boolean).join(" ").toLowerCase();
+  return !query||haystack.includes(query);
+ });
+ for(const p of filtered){
+  const tr=document.createElement("tr"),supplier=p.producers||{};
+  addCell(tr,p.name);
+  addCell(tr,[supplier.business_name,supplier.regency_city||p.origin_regency_city].filter(Boolean).join(" · "));
+  addCell(tr,p.category);addCell(tr,p.hs_code||"—");
+  addCell(tr,[p.moq?"MOQ: "+p.moq:"",p.monthly_capacity?"Capacity: "+p.monthly_capacity:""].filter(Boolean).join(" | ")||"—");
+  addCell(tr,p.indicative_price?[p.indicative_price,p.currency||"USD"].join(" "):"—");
+  addCell(tr,p.created_at?new Date(p.created_at).toLocaleString():"—");
+  const td=document.createElement("td"),select=document.createElement("select");select.className="admin-select";
+  [["pending","Pending review"],["draft","Draft"],["published","Published"],["archived","Archived"]].forEach(([value,label])=>{const option=document.createElement("option");option.value=value;option.textContent=label;select.appendChild(option);});
+  select.value=p.publication_status||"pending";
+  select.addEventListener("change",()=>updateProductStatus(p.id,select.value,select));
+  td.appendChild(select);tr.appendChild(td);rows.appendChild(tr);
+ }
+ if(!filtered.length){const tr=document.createElement("tr"),td=addCell(tr,"No product submissions match this search.");td.colSpan=8;rows.appendChild(tr);}
+ $("product-result-count").textContent=filtered.length+" of "+productRecords.length+" product(s) shown.";
+}
+async function loadProducts(){
+ try{
+  const result=await productCatalogApi("GET");
+  productRecords=result.products||[];
+  updateProductSummary();renderProducts();
+  note("admin-note",productRecords.length+" product catalog record(s) loaded from Supabase.");
+ }catch(err){note("admin-note","Product catalog: "+err.message);}
+}
+async function updateProductStatus(id,status,select){
+ select.disabled=true;
+ try{
+  await productCatalogApi("POST",{action:"update_status",id,status});
+  const refreshed=await productCatalogApi("GET");
+  productRecords=refreshed.products||[];
+  const saved=productRecords.find(p=>p.id===id);
+  if(!saved||saved.publication_status!==status)throw new Error("Supabase has not confirmed the product publication status.");
+  updateProductSummary();renderProducts();
+  note("admin-note","Product publication status saved and verified: "+status+".");
+ }catch(err){note("admin-note",err.message);await loadProducts();}
+ finally{if(select.isConnected)select.disabled=false;}
+}
+$("product-search").addEventListener("input",renderProducts);
 $("login-form").addEventListener("submit",async e=>{
  e.preventDefault();const f=new FormData(e.currentTarget);
  try{
@@ -130,7 +191,8 @@ async function showMatches(rfq, row, button){
 }
 $("rfq-search").addEventListener("input",renderRfqs);
 $("rfq-status-filter").addEventListener("change",renderRfqs);
-$("tab-producers").addEventListener("click",()=>{ $("producer-panel").classList.remove("hidden");$("rfq-panel").classList.add("hidden");$("tab-producers").classList.add("active");$("tab-rfqs").classList.remove("active");});
-$("tab-rfqs").addEventListener("click",()=>{ $("rfq-panel").classList.remove("hidden");$("producer-panel").classList.add("hidden");$("tab-rfqs").classList.add("active");$("tab-producers").classList.remove("active");loadRfqs();});
-$("refresh").addEventListener("click",()=>Promise.all([loadProducers(),loadRfqs()]));
+$("tab-producers").addEventListener("click",()=>{ $("producer-panel").classList.remove("hidden");$("rfq-panel").classList.add("hidden");$("product-panel").classList.add("hidden");$("tab-producers").classList.add("active");$("tab-rfqs").classList.remove("active");$("tab-products").classList.remove("active");});
+$("tab-rfqs").addEventListener("click",()=>{ $("rfq-panel").classList.remove("hidden");$("producer-panel").classList.add("hidden");$("product-panel").classList.add("hidden");$("tab-rfqs").classList.add("active");$("tab-producers").classList.remove("active");$("tab-products").classList.remove("active");loadRfqs();});
+$("tab-products").addEventListener("click",()=>{ $("product-panel").classList.remove("hidden");$("producer-panel").classList.add("hidden");$("rfq-panel").classList.add("hidden");$("tab-products").classList.add("active");$("tab-producers").classList.remove("active");$("tab-rfqs").classList.remove("active");loadProducts();});
+$("refresh").addEventListener("click",()=>Promise.all([loadProducers(),loadRfqs(),$("product-panel").classList.contains("hidden")?Promise.resolve():loadProducts()]));
 $("logout").addEventListener("click",()=>{accessToken=null;$("dashboard").classList.add("hidden");$("login-panel").classList.remove("hidden");$("login-form").reset();note("login-note","Signed out.");});
