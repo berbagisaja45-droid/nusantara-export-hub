@@ -44,7 +44,7 @@ function renderProducts(){
  for(const p of filtered){
   const tr=document.createElement("tr"),supplier=p.producers||{};
   addCell(tr,p.name);
-  addCell(tr,[supplier.business_name,supplier.regency_city||p.origin_regency_city].filter(Boolean).join(" · "));
+  addCell(tr,[supplier.business_name,supplier.regency_city||p.origin_regency_city,[supplier.contact_person,supplier.email||supplier.phone_whatsapp].filter(Boolean).join(" · ")].filter(Boolean).join(" | "));
   addCell(tr,p.category);addCell(tr,p.hs_code||"—");
   addCell(tr,[p.moq?"MOQ: "+p.moq:"",p.monthly_capacity?"Capacity: "+p.monthly_capacity:""].filter(Boolean).join(" | ")||"—");
   addCell(tr,p.indicative_price?[p.indicative_price,p.currency||"USD"].join(" "):"—");
