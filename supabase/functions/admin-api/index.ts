@@ -71,7 +71,7 @@ Deno.serve(async (req) => {
     const producers = await producerResponse.json();
     const products = await productResponse.json();
     const existing = await existingResponse.json();
-    const priorStatus = new Map(existing.map((m: Record<string, string>) => [m.producer_id, m.status]));
+    const priorStatus = new Map<string, string>(existing.map((m: Record<string, string>) => [m.producer_id, m.status] as [string, string]));
 
     const normalize = (value: unknown) => String(value || "").toLowerCase().normalize("NFKD").replace(/\p{Diacritic}/gu, "").replace(/[^a-z0-9]+/g, " ").trim();
     const stop = new Set(["the","and","for","with","from","of","a","an","to","in","on","by","export","quality","food","grade","please","buyer","product","required","monthly","capacity","main","estimated","kg","kgs","ton","tons","per","month","bulan"]);
@@ -96,9 +96,12 @@ Deno.serve(async (req) => {
       const hits = queryTerms.filter((term: string) => ownTokens.has(term) || (alias[term] || []).some((word: string) => ownTokens.has(word)));
       if (!hits.length) return null;
       const productRatio = queryTerms.length ? hits.length / queryTerms.length : 0;
-      const specHits = specsTerms.filter((term: string) => ownTokens.has(term));
+      const regionTokens = new Set(tokens(p.regency_city));
+      const locationHits = specsTerms.filter((term: string) => regionTokens.has(term));
+      const specHits = specsTerms.filter((term: string) => ownTokens.has(term) && !regionTokens.has(term));
       const specRatio = specsTerms.length ? specHits.length / specsTerms.length : 0;
-      const score = Math.min(100, Math.round(productRatio * 75 + specRatio * 15 + 10));
+      const locationRatio = locationHits.length ? 1 : 0;
+      const score = Math.min(100, Math.round(productRatio * 65 + specRatio * 15 + locationRatio * 10 + 10));
       const capacityTexts = [p.description,...ownProducts.map((item: Record<string, any>) => item.monthly_capacity)].filter(Boolean);
       const statedCapacity = capacityTexts.map(quantity).find(Boolean);
       let capacityNote = statedCapacity
@@ -112,6 +115,7 @@ Deno.serve(async (req) => {
         "Preliminary match score: " + score + "/100.",
         "Product terms matched: " + hits.join(", ") + ".",
         specHits.length ? "Specification keywords found: " + specHits.join(", ") + "." : "Buyer specifications require manual verification.",
+        locationHits.length ? "Supplier region matches buyer location request: " + locationHits.join(", ") + "." : "No specific supplier-region preference was matched.",
         capacityNote
       ].join(" ");
       return { rfq_id: rfqId, producer_id: p.id, match_notes: notes, status: priorStatus.get(p.id) || "suggested", _score: score };
