@@ -7,7 +7,7 @@ const $=id=>document.getElementById(id);
 const RFQ_STATUSES=[["new","New"],["reviewing","Reviewing"],["matched","Matched"],["introduced","Introduced"],["closed","Closed"],["rejected","Rejected"]];
 function note(id,msg){$(id).textContent=msg;}
 async function api(method="GET",body=null,resource="producers"){
- const url=method==="GET"&&resource==="rfqs"?ENDPOINT+"?resource=rfqs":ENDPOINT;
+ const url=method==="GET"&&resource==="rfqs"?ENDPOINT+"?resource=rfqs":method==="GET"&&resource.startsWith("matches:")?ENDPOINT+"?resource=matches&rfq_id="+encodeURIComponent(resource.slice(8)):ENDPOINT;
  const r=await fetch(url,{method,headers:{apikey:KEY,Authorization:"Bearer "+accessToken,"Content-Type":"application/json"},...(body?{body:JSON.stringify(body)}:{})});
  const j=await r.json().catch(()=>({}));if(!r.ok)throw new Error(j.error||"Request failed");return j;
 }
@@ -59,7 +59,10 @@ function renderRfqs(){
   const td=document.createElement("td"),select=document.createElement("select");select.className="admin-select";
   RFQ_STATUSES.forEach(([value,label])=>{const opt=document.createElement("option");opt.value=value;opt.textContent=label;select.appendChild(opt);});
   select.value=RFQ_STATUSES.some(([v])=>v===q.status)?q.status:"new";
-  select.addEventListener("change",()=>updateRfq(q.id,select.value,select));td.appendChild(select);tr.appendChild(td);rows.appendChild(tr);
+  select.addEventListener("change",()=>updateRfq(q.id,select.value,select));td.appendChild(select);tr.appendChild(td);
+  const matchTd=document.createElement("td");
+  const matchButton=document.createElement("button");matchButton.type="button";matchButton.className="button match-button";matchButton.textContent="Find suppliers";
+  matchButton.addEventListener("click",()=>showMatches(q, tr, matchButton));matchTd.appendChild(matchButton);tr.appendChild(matchTd);rows.appendChild(tr);
  }
  if(!filtered.length){const tr=document.createElement("tr"),td=addCell(tr,"No buyer requests match this filter.");td.colSpan=7;rows.appendChild(tr);}
  $("rfq-result-count").textContent=filtered.length+" of "+rfqRecords.length+" request(s) shown.";
@@ -83,6 +86,39 @@ async function updateRfq(id,status,select){
   note("admin-note","RFQ status saved and verified in Supabase: "+status+".");
  }catch(err){note("admin-note",err.message);await loadRfqs();}
  finally{if(select.isConnected)select.disabled=false;}
+}
+
+async function showMatches(rfq, row, button){
+ const existing=row.nextElementSibling;
+ if(existing&&existing.classList.contains("match-detail-row")){existing.remove();button.textContent="Find suppliers";return;}
+ button.disabled=true;button.textContent="Matching...";
+ try{
+  await api("POST",{action:"run_matching",rfq_id:rfq.id});
+  const result=await api("GET",null,"matches:"+rfq.id);
+  const detail=document.createElement("tr");detail.className="match-detail-row";
+  const cell=document.createElement("td");cell.colSpan=8;
+  const wrap=document.createElement("div");wrap.className="match-detail";
+  const heading=document.createElement("h3");heading.textContent="Suggested suppliers for "+(rfq.product_required||"this request");wrap.appendChild(heading);
+  const disclaimer=document.createElement("p");disclaimer.className="match-disclaimer";disclaimer.textContent="Preliminary recommendations based on product keywords and available supplier records. Verify specifications, certifications, stock and delivery capacity before introducing a supplier.";wrap.appendChild(disclaimer);
+  const matches=result.matches||[];
+  if(!matches.length){const empty=document.createElement("p");empty.textContent="No verified supplier matched the product keywords. Add structured product profiles or review supplier descriptions.";wrap.appendChild(empty);}
+  matches.forEach(m=>{
+   const card=document.createElement("div");card.className="match-card";
+   const producer=m.producers||{};
+   const title=document.createElement("strong");title.textContent=producer.business_name||"Verified producer";card.appendChild(title);
+   const region=document.createElement("small");region.textContent=producer.regency_city||"Region not recorded";card.appendChild(region);
+   const notes=document.createElement("p");notes.textContent=m.match_notes||"No matching notes.";card.appendChild(notes);
+   const status=document.createElement("select");status.className="admin-select";
+   [["suggested","Suggested"],["contacted","Contacted"],["accepted","Accepted"],["declined","Declined"]].forEach(([v,label])=>{const opt=document.createElement("option");opt.value=v;opt.textContent=label;status.appendChild(opt);});
+   status.value=m.status||"suggested";
+   status.addEventListener("change",async()=>{status.disabled=true;try{await api("POST",{action:"update_match",id:m.id,status:status.value});note("admin-note","Supplier match updated: "+status.options[status.selectedIndex].text+".");}catch(err){note("admin-note",err.message);status.value=m.status||"suggested";}finally{status.disabled=false;}});
+   card.appendChild(status);wrap.appendChild(card);
+  });
+  cell.appendChild(wrap);detail.appendChild(cell);row.after(detail);
+  button.textContent="Hide matches";
+  note("admin-note",matches.length+" supplier match(es) saved for this RFQ.");
+ }catch(err){note("admin-note","Matching failed: "+err.message);}
+ finally{button.disabled=false;}
 }
 $("rfq-search").addEventListener("input",renderRfqs);
 $("rfq-status-filter").addEventListener("change",renderRfqs);
