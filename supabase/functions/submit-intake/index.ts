@@ -69,14 +69,26 @@ Deno.serve(async (req) => {
       return reply(400, { error: "Please complete all required RFQ fields with a valid email" });
     }
     table = "buyer_rfqs";
+    const contactName = clean(data.contact_name, 160);
+    const incoterms = clean(data.incoterms, 12).toUpperCase();
+    const allowedIncoterms = ["", "EXW", "FCA", "FOB", "CFR", "CIF", "CPT", "CIP", "DAP", "DPU", "DDP"];
+    if (!allowedIncoterms.includes(incoterms)) {
+      return reply(400, { error: "Please select a valid Incoterms rule" });
+    }
+    const specification = clean(data.specification, 2800);
+    const combinedSpecifications = [
+      specification,
+      incoterms ? "Requested Incoterms: " + incoterms : ""
+    ].filter(Boolean).join("\\n");
     row = {
       buyer_company: company,
+      contact_name: contactName || null,
       email,
       destination_country: country,
       product_required: product,
       quantity,
       target_timeline: clean(data.timeline, 180) || null,
-      specifications: clean(data.specification, 3000) || null,
+      specifications: combinedSpecifications.slice(0, 3000) || null,
       status: "new"
     };
   } else {
