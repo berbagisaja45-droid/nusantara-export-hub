@@ -209,7 +209,7 @@ async function showMatches(rfq, row, button){
    const producer=m.producers||{};
    const title=document.createElement("strong");title.textContent=producer.business_name||"Verified producer";card.appendChild(title);
    const region=document.createElement("small");region.textContent=producer.regency_city||"Region not recorded";card.appendChild(region);
-   const notes=document.createElement("p");notes.textContent=m.match_notes||"No matching notes.";card.appendChild(notes);
+   const scoreMatch=String(m.match_notes||"").match(/Preliminary match score:\s*(\d+)\/100/i);\n   if(scoreMatch){const score=document.createElement("strong");score.className="match-score";score.textContent="Match score: "+scoreMatch[1]+"/100";score.title="Weighted product-keyword and specification relevance; not a probability of successful fulfillment.";card.appendChild(score);}\n   const notes=document.createElement("p");notes.textContent=m.match_notes||"No matching notes.";card.appendChild(notes);
    const status=document.createElement("select");status.className="admin-select";
    [["suggested","Suggested"],["contacted","Contacted"],["accepted","Accepted"],["declined","Declined"]].forEach(([v,label])=>{const opt=document.createElement("option");opt.value=v;opt.textContent=label;status.appendChild(opt);});
    status.value=m.status||"suggested";
