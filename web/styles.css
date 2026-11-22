@@ -101,3 +101,21 @@
 header nav{gap:14px;flex-wrap:wrap;justify-content:center}header nav a{font-size:12px}
 @media(max-width:850px){.feature-launch-grid{grid-template-columns:repeat(2,minmax(0,1fr))}header{height:auto;min-height:70px;padding:14px 5%;gap:12px;flex-wrap:wrap}header nav{order:3;width:100%;overflow-x:auto;justify-content:flex-start;flex-wrap:nowrap;padding:8px 0}header nav a{white-space:nowrap}}
 @media(max-width:520px){.feature-launch-grid{grid-template-columns:1fr}.feature-launch-card{min-height:165px}}
+
+
+/* Admin sign-in: consistent stacked fields, especially on mobile */
+.admin-login{width:100%;max-width:520px;padding:clamp(22px,5vw,38px);margin:24px auto}
+.admin-login h2{margin:0 0 22px;font-size:clamp(23px,4vw,30px)}
+.admin-login .admin-form{display:grid;grid-template-columns:1fr;gap:16px}
+.admin-login .admin-form label{display:grid;grid-template-columns:1fr;gap:8px;width:100%;font-size:15px;font-weight:600;color:#354638}
+.admin-login .admin-form input{display:block;width:100%;min-width:0;min-height:52px;padding:13px 15px;border:1px solid #d8e0d5;border-radius:6px;background:#fff;font:16px Arial,sans-serif;color:var(--ink)}
+.admin-login .admin-form input:focus{outline:3px solid rgba(30,80,57,.16);border-color:var(--green)}
+.admin-login .admin-form button{width:100%;min-height:54px;margin-top:2px;font-size:16px}
+.admin-login #login-note{min-height:16px;line-height:1.5}
+@media(max-width:600px){
+ .admin-wrap{margin:28px auto;padding:0 16px}
+ .admin-wrap>h1{font-size:clamp(34px,10vw,42px)!important;line-height:1.08}
+ .admin-wrap>p{font-size:16px;line-height:1.5}
+ .admin-login{margin:22px auto;padding:22px 18px}
+ .admin-login .admin-form input{font-size:16px}
+}
