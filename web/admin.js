@@ -122,6 +122,24 @@ $("login-form").addEventListener("submit",async e=>{
   $("login-panel").classList.add("hidden");$("dashboard").classList.remove("hidden");
  }catch(err){note("login-note",err.message);}
 });
+
+$("forgot-password-link").addEventListener("click",async e=>{
+ e.preventDefault();
+ const email=$('login-form').elements.email.value.trim();
+ if(!email){note("login-note","Enter your admin email first, then choose Forgot password.");$('login-form').elements.email.focus();return;}
+ const link=e.currentTarget;link.setAttribute("aria-busy","true");
+ try{
+  const redirectTo="https://berbagisaja45-droid.github.io/nusantara-export-hub/reset-password.html";
+  const response=await fetch(SUPABASE_URL+"/auth/v1/recover?redirect_to="+encodeURIComponent(redirectTo),{
+   method:"POST",headers:{apikey:KEY,"Content-Type":"application/json"},body:JSON.stringify({email})
+  });
+  const result=await response.json().catch(()=>({}));
+  if(!response.ok)throw new Error(result.msg||result.message||result.error_description||"Password recovery request failed");
+  note("login-note","If this email belongs to an account, a password reset link has been sent. Check Inbox and Spam.");
+ }catch(err){note("login-note","Could not request password reset: "+err.message);}
+ finally{link.removeAttribute("aria-busy");}
+});
+
 function addCell(tr,value,cls=""){const td=document.createElement("td");td.textContent=value??"—";if(cls)td.className=cls;tr.appendChild(td);return td;}
 async function loadProducers(){
  note("admin-note","Loading producer records...");
