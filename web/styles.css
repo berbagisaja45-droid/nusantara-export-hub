@@ -67,3 +67,22 @@
 .catalog-product-details{font-size:12px;line-height:1.7;color:#526456}
 .database-product{border-color:#cbdcc8}
 @media(max-width:800px){.catalog-submit-panel{grid-template-columns:1fr;padding:20px}}
+
+
+/* Export intelligence and buyer portal v2 */
+.v2-hero{background:#edf3e9;padding:54px 8%;display:flex;justify-content:space-between;align-items:center;gap:24px;flex-wrap:wrap}
+.v2-wrap{max-width:1200px;margin:auto;padding:38px 22px 70px}
+.v2-kpis{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px;margin:24px 0}
+.v2-kpi{background:#fff;border:1px solid #dfe7dc;border-radius:8px;padding:20px}
+.v2-kpi small{display:block;color:#69776e;font-size:12px}.v2-kpi strong{display:block;font:clamp(22px,3vw,32px) Georgia;color:#1e5039;margin:10px 0 5px}
+.v2-grid{display:grid;grid-template-columns:1.2fr .8fr;gap:18px;margin:20px 0}
+.v2-panel{background:#fff;border:1px solid #e1e8df;border-radius:8px;padding:22px;min-width:0}
+.v2-panel h2{font:25px Georgia;margin:0 0 12px}.v2-muted{font-size:12px;color:#69776e;line-height:1.7}
+.v2-bars{display:grid;gap:16px;margin:20px 0}.v2-bar-label{display:flex;justify-content:space-between;font-size:12px;margin-bottom:6px}.v2-track{height:13px;background:#edf1e9;border-radius:20px;overflow:hidden}.v2-fill{height:100%;background:#477956;border-radius:20px}
+.v2-source{font-size:11px;color:#69776e;line-height:1.7}.v2-source a{color:#1e5039;text-decoration:underline}
+.v2-notice{padding:13px;background:#fff8e8;border-left:3px solid #b48a35;font-size:12px;line-height:1.65}
+.v2-form{display:grid;grid-template-columns:1fr 1fr;gap:13px}.v2-form label{display:flex;flex-direction:column;gap:6px;font-size:12px;font-weight:bold}.v2-form input,.v2-form select,.v2-form textarea{padding:12px;border:1px solid #d8e0d5;border-radius:4px;font:14px Arial;width:100%}.v2-form .full{grid-column:1/-1}.v2-form button{justify-self:start;border:0;cursor:pointer}
+.v2-status{font-size:12px;padding:12px;background:#eef5e9;color:#1e5039;border-left:3px solid #1e5039}
+.v2-product-list{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}.v2-product{border:1px solid #e1e8df;padding:15px;border-radius:6px}.v2-product h3{font:19px Georgia;margin:0 0 7px}
+@media(max-width:760px){.v2-kpis{grid-template-columns:repeat(2,minmax(0,1fr))}.v2-grid{grid-template-columns:1fr}.v2-form{grid-template-columns:1fr}.v2-form .full{grid-column:auto}.v2-wrap{padding:28px 16px 55px}}
+@media(max-width:420px){.v2-kpis,.v2-product-list{grid-template-columns:1fr}}
