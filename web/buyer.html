@@ -1,9 +1,9 @@
 <!doctype html>
-<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="description" content="International buyer portal for sourcing Indonesian products"><title>Buyer Portal · Nusantara Export Hub</title><link rel="stylesheet" href="styles.css?v=20261122-v2"></head>
-<body><header><a class="brand" href="index.html">NUSANTARA <b>EXPORT HUB</b></a><nav><a href="index.html#market">Marketplace</a><a href="export-intelligence.html">Export data</a><a href="admin.html">Admin</a></nav><a class="button" href="#buyer-rfq">Submit RFQ</a></header>
-<section class="v2-hero"><div><small>INTERNATIONAL BUYER DESK</small><h1 style="font:clamp(34px,5vw,52px) Georgia;margin:12px 0">Source from Indonesia</h1><p class="v2-muted">Browse approved supplier products and send a structured sourcing request to our trade desk.</p></div><div><b>Buyer services</b><p class="v2-muted">Supplier introductions · Specification review · Export coordination</p></div></section>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="description" content="International buyer portal for sourcing Indonesian products"><title>Buyer RFQ · Nusantara Export Hub</title><link rel="stylesheet" href="styles.css?v=20261122-v2"></head>
+<body><header><a class="brand" href="index.html">NUSANTARA <b>EXPORT HUB</b></a><nav><a href="marketplace.html">Marketplace</a><a href="producers.html">Producers</a><a href="product-submit.html">Register product</a><a href="buyer-catalog.html">Buyer catalog</a><a href="buyer.html">Buyer RFQ</a><a href="export-intelligence.html">Export data</a><a href="admin.html">Admin</a></nav><a class="button" href="#buyer-rfq">Submit RFQ</a></header>
+<section class="v2-hero"><div><small>INTERNATIONAL BUYER DESK</small><h1 style="font:clamp(34px,5vw,52px) Georgia;margin:12px 0">Source from Indonesia</h1><p class="v2-muted">Submit one structured sourcing request to our trade desk.</p></div><div><b>Buyer services</b><p class="v2-muted">Supplier introductions · Specification review · Export coordination</p></div></section>
 <main class="v2-wrap">
-<section class="v2-panel"><h2>Published products</h2><p class="v2-muted">Only published catalog records are loaded from the existing Supabase project.</p><label style="display:block;max-width:520px;margin:14px 0">Search products, HS Code or supplier region<input id="buyer-product-search" type="search" placeholder="e.g. coffee, honey, cinnamon, 0901" style="display:block;width:100%;padding:12px;border:1px solid #d8e0d5;border-radius:4px;margin-top:6px"></label><p id="buyer-match-note" class="v2-muted" aria-live="polite">Search ranks published products by keyword relevance. It is an indicative discovery aid, not an AI prediction or guarantee of supply.</p><div id="buyer-products" class="v2-product-list"><p class="v2-muted">Loading published products…</p></div></section>
+
 <section id="buyer-rfq" class="v2-panel" style="margin-top:20px"><h2>Request for quotation</h2><p class="v2-muted">Provide your company, destination and product requirements. This sends an inquiry through the existing submit-intake Edge Function. Submission is not a confirmed offer or transaction.</p>
 <form id="buyer-rfq-form" class="v2-form">
 <label>Company / buyer name<input name="company" required maxlength="180"></label><label>Contact email<input name="email" type="email" required maxlength="254"></label><label>Contact person<input name="contact_name" maxlength="160"></label><label>Destination country<input name="country" required maxlength="100"></label><label>Product required<input name="product" required maxlength="200" placeholder="Product, grade or HS code"></label><label>Estimated quantity<input name="quantity" required maxlength="100" placeholder="e.g. 2 metric tons"></label><label>Target delivery<input name="timeline" maxlength="160" placeholder="Preferred delivery window"></label><label>Incoterms<select name="incoterms"><option value="">Not decided</option><option>EXW</option><option>FCA</option><option>FOB</option><option>CFR</option><option>CIF</option><option>CPT</option><option>CIP</option><option>DAP</option><option>DPU</option><option>DDP</option></select></label><label class="full">Specifications<textarea name="specification" rows="4" maxlength="4000" placeholder="Packaging, quality, certifications, destination port and other requirements"></textarea></label><button class="button" type="submit">Send buyer inquiry ↗</button><p id="buyer-rfq-status" class="v2-status full" role="status">Your inquiry will be reviewed by the Nusantara Export Hub team.</p></form></section>
@@ -12,33 +12,6 @@
 <script>
 const SUPABASE_URL="https://qbvbiaiwlgldxbnkpoyz.supabase.co";
 const KEY="sb_publishable_73V0_NwW1j5pZTTdq15mwQ_irBusD0u";
-const catalog=document.getElementById("buyer-products");
-let publishedProducts=[];
-function renderBuyerProducts(){
- const q=(document.getElementById("buyer-product-search").value||"").trim().toLowerCase();
- const terms=q.split(/\\s+/).filter(Boolean);
- const ranked=publishedProducts.map(x=>{
-  const supplier=x.producers||{};
-  const fields={name:String(x.name||"").toLowerCase(),category:String(x.category||"").toLowerCase(),details:[x.description,x.hs_code,x.origin_regency_city,supplier.business_name,supplier.regency_city,x.moq,x.monthly_capacity].join(" ").toLowerCase()};
-  let score=0;terms.forEach(t=>{if(fields.name.includes(t))score+=5;if(fields.category.includes(t))score+=3;if(fields.details.includes(t))score+=1;});
-  return {product:x,score};
- }).filter(x=>!terms.length||x.score>0).sort((a,b)=>b.score-a.score);
- catalog.replaceChildren();
- document.getElementById("buyer-match-note").textContent=terms.length?ranked.length+" published product(s) found. Ranking is keyword relevance only; confirm specifications, certification, capacity and price with the supplier.":"Showing all published products. Search ranks by product name, category and available details.";
- if(!ranked.length){const p=document.createElement("p");p.textContent="No published product matches this search. Try a broader term or submit an RFQ.";catalog.append(p);return;}
- ranked.forEach(({product:x,score})=>{
-  const card=document.createElement("article");card.className="v2-product";
-  const h=document.createElement("h3");h.textContent=x.name;
-  const p=document.createElement("p");p.className="v2-muted";p.textContent=[x.category,x.origin_regency_city,(x.producers||{}).business_name].filter(Boolean).join(" · ");
-  const d=document.createElement("p");d.textContent=x.description||"Specifications available on request.";
-  const m=document.createElement("small");m.textContent=["MOQ: "+(x.moq||"on request"),"Capacity: "+(x.monthly_capacity||"on request"),"HS: "+(x.hs_code||"on request")].join(" · ");
-  if(terms.length){const badge=document.createElement("strong");badge.textContent="Keyword relevance: "+score;badge.style.cssText="display:inline-block;margin:10px 0;color:#1e5039;font-size:12px";card.append(badge);}
-  card.append(h,p,d,m);catalog.append(card);
- });
-}
-document.getElementById("buyer-product-search").addEventListener("input",renderBuyerProducts);
-async function loadBuyerProducts(){try{const q="id,name,category,description,origin_regency_city,hs_code,moq,monthly_capacity,currency,indicative_price,producers(business_name,regency_city)";const r=await fetch(SUPABASE_URL+"/rest/v1/products?select="+encodeURIComponent(q)+"&publication_status=eq.published&order=created_at.desc",{headers:{apikey:KEY}});if(!r.ok)throw new Error("Catalog service unavailable");publishedProducts=await r.json();renderBuyerProducts();}catch(e){catalog.textContent="Published catalog is temporarily unavailable. Please use the main marketplace or contact the trade desk.";}}
-loadBuyerProducts();
 const form=document.getElementById("buyer-rfq-form");
 const status=document.getElementById("buyer-rfq-status");
 const trap=document.createElement("input");trap.name="website";trap.tabIndex=-1;trap.autocomplete="off";trap.setAttribute("aria-hidden","true");trap.style.cssText="position:absolute;left:-10000px;width:1px;height:1px";form.append(trap);
