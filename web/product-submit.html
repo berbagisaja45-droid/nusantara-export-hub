@@ -1,0 +1,31 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="description" content="Submit products for export catalog review"><title>Product Registration · Nusantara Export Hub</title><link rel="stylesheet" href="styles.css?v=20261122-screen"></head><body><header><a class="brand" href="index.html">NUSANTARA <b>EXPORT HUB</b></a><nav><a href="marketplace.html">Marketplace</a><a href="producers.html">Producers</a><a href="product-submit.html">Register product</a><a href="buyer-catalog.html">Buyer catalog</a><a href="buyer.html">Buyer RFQ</a><a href="export-intelligence.html">Export data</a><a href="admin.html">Admin</a></nav><a class="button" href="buyer.html">Request a quote</a></header><main><section class="section muted"><small>SUPPLIER WORKSPACE</small><h1 style="font:40px Georgia">Register a product</h1><p>One task per screen: submit product information for Admin review.</p><section id="product-submit" class="section muted">
+ <small>SUPPLIER PRODUCT CATALOG</small>
+ <h2>Submit a product for catalog review</h2>
+ <p>Only approved suppliers can submit products. Enter the same email or WhatsApp contact registered for your supplier profile. Every submission is reviewed by the Nusantara Export Hub admin before becoming visible to buyers.</p>
+ <div class="catalog-submit-panel">
+  <div><h3>Prepare your product information</h3><p>Provide accurate trade details, capacity, minimum order, quality specifications and supporting certifications. Do not publish unverified claims or certificates.</p><p class="catalog-review-note">New submissions enter the Pending review queue. Approval does not itself constitute an export certification or a confirmed offer.</p></div>
+  <form id="product-form" class="hub-form">
+   <label>Approved supplier<select id="product-producer" name="producer_id" required><option value="">Loading approved suppliers...</option></select></label>
+   <label>Product name<input name="name" required maxlength="160" placeholder="e.g. Galo-galo Honey"></label>
+   <label>Registered supplier email / WhatsApp<input name="supplier_contact" required placeholder="Must match registered supplier contact"></label>
+   <label>Product category<select name="category" required><option value="">Select category</option><option>Coffee & Cocoa</option><option>Honey & Natural Products</option><option>Spices</option><option>Coconut & Derivatives</option><option>Agriculture</option><option>Fisheries</option><option>Processed Foods</option><option>Other</option></select></label>
+   <label>Product origin<input name="origin_regency_city" placeholder="e.g. Balai Gadang, Padang"></label>
+   <label class="full">Product description<textarea name="description" rows="3" required maxlength="3000" placeholder="Variety, processing method, harvest or production details..."></textarea></label>
+   <label>HS Code<input name="hs_code" placeholder="e.g. 0409.00"></label>
+   <label>Minimum order quantity (MOQ)<input name="moq" placeholder="e.g. 100 kg"></label>
+   <label>Monthly capacity<input name="monthly_capacity" placeholder="e.g. 500 kg/month"></label>
+   <label>Indicative price<input name="indicative_price" placeholder="e.g. 8.50 per kg"></label>
+   <label>Currency<select name="currency"><option>USD</option><option>IDR</option><option>EUR</option><option>MYR</option><option>SGD</option></select></label>
+   <label>Grade / quality level<input name="grade" placeholder="e.g. Grade A"></label>
+   <label>Packaging<input name="packaging" placeholder="e.g. 250 g jar / 25 kg sack"></label>
+   <label>Shelf life<input name="shelf_life" placeholder="e.g. 18 months"></label>
+   <label>Quality standard<input name="quality_standard" placeholder="e.g. moisture, purity, food safety"></label>
+   <label>Storage conditions<input name="storage_conditions" placeholder="e.g. Cool and dry place"></label>
+   <label class="full">Certifications (separate with commas)<input name="certifications" placeholder="e.g. Halal, HACCP, Organic (only if valid)"></label>
+   <label class="full">Product image URLs (HTTPS, one per line)<textarea name="image_urls" rows="2" placeholder="https://..."></textarea></label>
+   <label class="full">Additional specifications<textarea name="additional_notes" rows="3" placeholder="Additional trade, laboratory or packaging information..."></textarea></label>
+   <button class="button" type="submit">Submit product for review ↗</button>
+   <p class="form-note" role="status">Products are reviewed before publication in the public catalog.</p>
+  </form>
+ </div>
+</section></section><div id="verified-producers" hidden></div></main><footer><div><b>NUSANTARA EXPORT HUB</b><p>Connecting local producers to global markets.</p></div><a href="index.html">Back to dashboard</a><p>© <span id="year"></span> Nusantara Export Hub</p></footer><script src="app.js?v=20261122-screen"></script></body></html>
