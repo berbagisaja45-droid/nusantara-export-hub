@@ -181,7 +181,30 @@ function renderRfqs(){
   select.value=RFQ_STATUSES.some(([v])=>v===q.status)?q.status:"new";
   select.addEventListener("change",()=>updateRfq(q.id,select.value,select));td.appendChild(select);tr.appendChild(td);
   const matchTd=document.createElement("td");
-  const matchButton=document.createElement("button");matchButton.type="button";matchButton.className="button match-button";matchButton.textContent="Find suppliers";
+  const detailButton=document.createElement("button");detailButton.type="button";detailButton.className="button secondary match-button";detailButton.textContent="View details";
+  const detailPanel=document.createElement("div");detailPanel.className="rfq-inline-detail hidden";
+  const detailItems=[
+   ["Buyer company",q.buyer_company],["Contact person",q.contact_name],["Email",q.email],
+   ["Destination country",q.destination_country],["Product",q.product_required],["HS Code",q.hs_code],
+   ["Quantity",q.quantity],["Target delivery",q.target_timeline],["Incoterms",q.incoterms],
+   ["Specifications",q.specifications],["Submitted",q.created_at?new Date(q.created_at).toLocaleString():""]
+  ].filter(item=>item[1]!==null&&item[1]!==undefined&&String(item[1]).trim()!=="");
+  detailItems.forEach(([label,value])=>{
+   const line=document.createElement("p");
+   const strong=document.createElement("strong");strong.textContent=label+": ";
+   line.append(strong,document.createTextNode(String(value)));detailPanel.appendChild(line);
+  });
+  if(q.email){
+   const emailLink=document.createElement("a");emailLink.className="button";emailLink.href="mailto:"+encodeURIComponent(q.email)+"?subject="+encodeURIComponent("Nusantara Export Hub — "+(q.product_required||"Your quotation request"));
+   emailLink.textContent="Reply to buyer by email";detailPanel.appendChild(emailLink);
+  }
+  detailButton.addEventListener("click",()=>{
+   const opening=detailPanel.classList.contains("hidden");
+   detailPanel.classList.toggle("hidden",!opening);
+   detailButton.textContent=opening?"Hide details":"View details";
+  });
+  matchTd.appendChild(detailButton);matchTd.appendChild(detailPanel);
+  const matchButton=document.createElement("button");matchButton.type="button";matchButton.className="button match-button";matchButton.style.marginTop="8px";matchButton.textContent="Find suppliers";
   matchButton.addEventListener("click",()=>showMatches(q, tr, matchButton));matchTd.appendChild(matchButton);tr.appendChild(matchTd);rows.appendChild(tr);
  }
  if(!filtered.length){const tr=document.createElement("tr"),td=addCell(tr,"No buyer requests match this filter.");td.colSpan=8;rows.appendChild(tr);}
