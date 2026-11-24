@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="description" content="International buyer portal for sourcing Indonesian products"><title>Buyer RFQ · Nusantara Export Hub</title><link rel="stylesheet" href="styles.css?v=20261124-rfq"></head>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="description" content="International buyer portal for sourcing Indonesian products"><title>Buyer RFQ · Nusantara Export Hub</title><link rel="stylesheet" href="styles.css?v=20261124-rfq-track2"></head>
 <body><header><a class="brand" href="index.html">NUSANTARA <b>EXPORT HUB</b></a><nav><a href="marketplace.html">Marketplace</a><a href="producers.html">Producers</a><a href="producer-register.html">Register producer</a><a href="product-submit.html">Register product</a><a href="buyer-catalog.html">Buyer catalog</a><a href="buyer.html">Buyer RFQ</a><a href="export-intelligence.html">Export data</a><a href="admin.html">Admin</a></nav><a class="button" href="buyer.html">Request a quote</a></header>
 <section class="v2-hero"><div><small>INTERNATIONAL BUYER DESK</small><h1 style="font:clamp(34px,5vw,52px) Georgia;margin:12px 0">Source from Indonesia</h1><p class="v2-muted">Submit one structured sourcing request to our trade desk.</p></div><div><b>Buyer services</b><p class="v2-muted">Supplier introductions · Specification review · Export coordination</p></div></section>
 <main class="v2-wrap">
@@ -7,10 +7,10 @@
 <section id="buyer-rfq" class="v2-panel" style="margin-top:20px"><h2>Request for quotation</h2><p class="v2-muted">Provide your company, destination and product requirements. This sends an inquiry through the existing submit-intake Edge Function. Submission is not a confirmed offer or transaction.</p>
 <form id="buyer-rfq-form" class="v2-form">
 <label>Company / buyer name<input name="company" required maxlength="180"></label><label>Contact email<input name="email" type="email" required maxlength="254"></label><label>Contact person<input name="contact_name" maxlength="160"></label><label>Destination country<input name="country" required maxlength="100"></label><label>Product required<input name="product" required maxlength="200" placeholder="Product, grade or HS code"></label><label>Estimated quantity<input name="quantity" required maxlength="100" placeholder="e.g. 2 metric tons"></label><label>Target delivery<input name="timeline" maxlength="160" placeholder="Preferred delivery window"></label><label>Incoterms<select name="incoterms"><option value="">Not decided</option><option>EXW</option><option>FCA</option><option>FOB</option><option>CFR</option><option>CIF</option><option>CPT</option><option>CIP</option><option>DAP</option><option>DPU</option><option>DDP</option></select></label><label class="full">Specifications<textarea name="specification" rows="4" maxlength="4000" placeholder="Packaging, quality, certifications, destination port and other requirements"></textarea></label><button class="button" type="submit">Submit Request for Quotation ↗</button><p id="buyer-rfq-status" class="v2-status full" role="status">Your inquiry will be reviewed by the Nusantara Export Hub team.</p></form></section>
-<p class="v2-source" style="margin-top:18px">For existing RFQ follow-up, contact the trade desk using the email shown on the main website. Buyer account sign-in and private RFQ history are not enabled in this release; no password or account data is collected on this page.</p>
+<p class="v2-source" style="margin-top:18px">Keep your RFQ reference number. To protect buyer privacy, status lookup requires both the reference number and the email address used for submission. This page does not create a buyer password or account.</p>
 <section id="rfq-tracking" class="v2-panel" style="margin-top:20px">
 <h2>Track your quotation request</h2>
-<p class="v2-muted">Use the reference number shown after submission and the same email address used in your request.</p>
+<p class="v2-muted">Enter the unique reference number shown after submission and the same email address used in your request. Only the request status and basic request details are displayed.</p>
 <form id="rfq-track-form" class="v2-form">
 <label>RFQ reference number<input name="reference_id" required maxlength="36" placeholder="xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"></label>
 <label>Buyer email<input name="email" type="email" required maxlength="254" placeholder="name@company.com"></label>
@@ -46,7 +46,7 @@ form.addEventListener("submit",async e=>{e.preventDefault();if(!form.reportValid
 
 const trackForm=document.getElementById("rfq-track-form");
 const trackStatus=document.getElementById("rfq-track-status");
-const statusLabels={new:"New — received",reviewing:"Reviewing — under review",matched:"Matched — supplier identified",introduced:"Introduced — buyer and supplier connected",closed:"Closed — request completed",rejected:"Rejected — unable to process"};
+const statusLabels={new:"New — received",reviewing:"Reviewing — our trade desk is checking your requirements",matched:"Matched — a potential supplier has been identified",introduced:"Introduced — buyer and supplier have been connected",closed:"Closed — this request has been completed",rejected:"Rejected — this request cannot be processed"};
 trackForm.addEventListener("submit",async e=>{
  e.preventDefault();if(!trackForm.reportValidity())return;
  const button=trackForm.querySelector("button");button.disabled=true;button.textContent="Checking…";trackStatus.textContent="Checking your request…";
