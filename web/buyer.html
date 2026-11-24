@@ -1,12 +1,12 @@
 <!doctype html>
-<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="description" content="International buyer portal for sourcing Indonesian products"><title>Buyer RFQ · Nusantara Export Hub</title><link rel="stylesheet" href="styles.css?v=20261122-screen"></head>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="description" content="International buyer portal for sourcing Indonesian products"><title>Buyer RFQ · Nusantara Export Hub</title><link rel="stylesheet" href="styles.css?v=20261124-rfq"></head>
 <body><header><a class="brand" href="index.html">NUSANTARA <b>EXPORT HUB</b></a><nav><a href="marketplace.html">Marketplace</a><a href="producers.html">Producers</a><a href="producer-register.html">Register producer</a><a href="product-submit.html">Register product</a><a href="buyer-catalog.html">Buyer catalog</a><a href="buyer.html">Buyer RFQ</a><a href="export-intelligence.html">Export data</a><a href="admin.html">Admin</a></nav><a class="button" href="buyer.html">Request a quote</a></header>
 <section class="v2-hero"><div><small>INTERNATIONAL BUYER DESK</small><h1 style="font:clamp(34px,5vw,52px) Georgia;margin:12px 0">Source from Indonesia</h1><p class="v2-muted">Submit one structured sourcing request to our trade desk.</p></div><div><b>Buyer services</b><p class="v2-muted">Supplier introductions · Specification review · Export coordination</p></div></section>
 <main class="v2-wrap">
 
 <section id="buyer-rfq" class="v2-panel" style="margin-top:20px"><h2>Request for quotation</h2><p class="v2-muted">Provide your company, destination and product requirements. This sends an inquiry through the existing submit-intake Edge Function. Submission is not a confirmed offer or transaction.</p>
 <form id="buyer-rfq-form" class="v2-form">
-<label>Company / buyer name<input name="company" required maxlength="180"></label><label>Contact email<input name="email" type="email" required maxlength="254"></label><label>Contact person<input name="contact_name" maxlength="160"></label><label>Destination country<input name="country" required maxlength="100"></label><label>Product required<input name="product" required maxlength="200" placeholder="Product, grade or HS code"></label><label>Estimated quantity<input name="quantity" required maxlength="100" placeholder="e.g. 2 metric tons"></label><label>Target delivery<input name="timeline" maxlength="160" placeholder="Preferred delivery window"></label><label>Incoterms<select name="incoterms"><option value="">Not decided</option><option>EXW</option><option>FCA</option><option>FOB</option><option>CFR</option><option>CIF</option><option>CPT</option><option>CIP</option><option>DAP</option><option>DPU</option><option>DDP</option></select></label><label class="full">Specifications<textarea name="specification" rows="4" maxlength="4000" placeholder="Packaging, quality, certifications, destination port and other requirements"></textarea></label><button class="button" type="submit">Send buyer inquiry ↗</button><p id="buyer-rfq-status" class="v2-status full" role="status">Your inquiry will be reviewed by the Nusantara Export Hub team.</p></form></section>
+<label>Company / buyer name<input name="company" required maxlength="180"></label><label>Contact email<input name="email" type="email" required maxlength="254"></label><label>Contact person<input name="contact_name" maxlength="160"></label><label>Destination country<input name="country" required maxlength="100"></label><label>Product required<input name="product" required maxlength="200" placeholder="Product, grade or HS code"></label><label>Estimated quantity<input name="quantity" required maxlength="100" placeholder="e.g. 2 metric tons"></label><label>Target delivery<input name="timeline" maxlength="160" placeholder="Preferred delivery window"></label><label>Incoterms<select name="incoterms"><option value="">Not decided</option><option>EXW</option><option>FCA</option><option>FOB</option><option>CFR</option><option>CIF</option><option>CPT</option><option>CIP</option><option>DAP</option><option>DPU</option><option>DDP</option></select></label><label class="full">Specifications<textarea name="specification" rows="4" maxlength="4000" placeholder="Packaging, quality, certifications, destination port and other requirements"></textarea></label><button class="button" type="submit">Submit Request for Quotation ↗</button><p id="buyer-rfq-status" class="v2-status full" role="status">Your inquiry will be reviewed by the Nusantara Export Hub team.</p></form></section>
 <p class="v2-source" style="margin-top:18px">For existing RFQ follow-up, contact the trade desk using the email shown on the main website. Buyer account sign-in and private RFQ history are not enabled in this release; no password or account data is collected on this page.</p>
 </main><footer><b>NUSANTARA EXPORT HUB</b><p>Connecting local producers to global markets.</p><a href="index.html">Back to marketplace</a></footer>
 <script>
@@ -14,6 +14,23 @@ const SUPABASE_URL="https://qbvbiaiwlgldxbnkpoyz.supabase.co";
 const KEY="sb_publishable_73V0_NwW1j5pZTTdq15mwQ_irBusD0u";
 const form=document.getElementById("buyer-rfq-form");
 const status=document.getElementById("buyer-rfq-status");
+// Product links from Marketplace prefill the existing RFQ form; submission still uses submit-intake.
+const productParams = new URLSearchParams(window.location.search);
+const selectedProduct = productParams.get("product");
+const selectedHsCode = productParams.get("hs_code");
+const selectedSupplier = productParams.get("supplier");
+if (selectedProduct) {
+  const productField = form.elements.namedItem("product");
+  if (productField) productField.value = selectedProduct;
+  const specificationField = form.elements.namedItem("specification");
+  if (specificationField && (selectedHsCode || selectedSupplier)) {
+    specificationField.value = [
+      selectedHsCode ? "HS Code: " + selectedHsCode : "",
+      selectedSupplier ? "Supplier of interest: " + selectedSupplier : ""
+    ].filter(Boolean).join("\\n");
+  }
+  status.textContent = "Product selected: " + selectedProduct + ". Complete the remaining details to submit your quotation request.";
+}
 const trap=document.createElement("input");trap.name="website";trap.tabIndex=-1;trap.autocomplete="off";trap.setAttribute("aria-hidden","true");trap.style.cssText="position:absolute;left:-10000px;width:1px;height:1px";form.append(trap);
 form.addEventListener("submit",async e=>{e.preventDefault();if(!form.reportValidity())return;const btn=form.querySelector("button");btn.disabled=true;btn.textContent="Submitting…";status.textContent="Submitting your inquiry…";try{const data=Object.fromEntries(new FormData(form).entries());const website=data.website||"";delete data.website;const r=await fetch(SUPABASE_URL+"/functions/v1/submit-intake",{method:"POST",headers:{"Content-Type":"application/json",apikey:KEY},body:JSON.stringify({type:"rfq",data,website})});const j=await r.json().catch(()=>({}));if(!r.ok)throw new Error(j.error||"Submission failed");form.reset();status.textContent="Thank you. Your buyer inquiry has been received for review.";}catch(err){status.textContent="We could not submit this inquiry: "+err.message+". Please contact the trade desk via the main website."; }finally{btn.disabled=false;btn.textContent="Send buyer inquiry ↗";}});
 </script></body></html>
