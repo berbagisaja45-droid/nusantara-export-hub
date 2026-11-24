@@ -8,6 +8,16 @@
 <form id="buyer-rfq-form" class="v2-form">
 <label>Company / buyer name<input name="company" required maxlength="180"></label><label>Contact email<input name="email" type="email" required maxlength="254"></label><label>Contact person<input name="contact_name" maxlength="160"></label><label>Destination country<input name="country" required maxlength="100"></label><label>Product required<input name="product" required maxlength="200" placeholder="Product, grade or HS code"></label><label>Estimated quantity<input name="quantity" required maxlength="100" placeholder="e.g. 2 metric tons"></label><label>Target delivery<input name="timeline" maxlength="160" placeholder="Preferred delivery window"></label><label>Incoterms<select name="incoterms"><option value="">Not decided</option><option>EXW</option><option>FCA</option><option>FOB</option><option>CFR</option><option>CIF</option><option>CPT</option><option>CIP</option><option>DAP</option><option>DPU</option><option>DDP</option></select></label><label class="full">Specifications<textarea name="specification" rows="4" maxlength="4000" placeholder="Packaging, quality, certifications, destination port and other requirements"></textarea></label><button class="button" type="submit">Submit Request for Quotation ↗</button><p id="buyer-rfq-status" class="v2-status full" role="status">Your inquiry will be reviewed by the Nusantara Export Hub team.</p></form></section>
 <p class="v2-source" style="margin-top:18px">For existing RFQ follow-up, contact the trade desk using the email shown on the main website. Buyer account sign-in and private RFQ history are not enabled in this release; no password or account data is collected on this page.</p>
+<section id="rfq-tracking" class="v2-panel" style="margin-top:20px">
+<h2>Track your quotation request</h2>
+<p class="v2-muted">Use the reference number shown after submission and the same email address used in your request.</p>
+<form id="rfq-track-form" class="v2-form">
+<label>RFQ reference number<input name="reference_id" required maxlength="36" placeholder="xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"></label>
+<label>Buyer email<input name="email" type="email" required maxlength="254" placeholder="name@company.com"></label>
+<button class="button" type="submit">Check request status</button>
+<p id="rfq-track-status" class="v2-status full" role="status">Your request status will appear here.</p>
+</form>
+</section>
 </main><footer><b>NUSANTARA EXPORT HUB</b><p>Connecting local producers to global markets.</p><a href="index.html">Back to marketplace</a></footer>
 <script>
 const SUPABASE_URL="https://qbvbiaiwlgldxbnkpoyz.supabase.co";
@@ -32,5 +42,24 @@ if (selectedProduct) {
   status.textContent = "Product selected: " + selectedProduct + ". Complete the remaining details to submit your quotation request.";
 }
 const trap=document.createElement("input");trap.name="website";trap.tabIndex=-1;trap.autocomplete="off";trap.setAttribute("aria-hidden","true");trap.style.cssText="position:absolute;left:-10000px;width:1px;height:1px";form.append(trap);
-form.addEventListener("submit",async e=>{e.preventDefault();if(!form.reportValidity())return;const btn=form.querySelector("button");btn.disabled=true;btn.textContent="Submitting…";status.textContent="Submitting your inquiry…";try{const data=Object.fromEntries(new FormData(form).entries());const website=data.website||"";delete data.website;const r=await fetch(SUPABASE_URL+"/functions/v1/submit-intake",{method:"POST",headers:{"Content-Type":"application/json",apikey:KEY},body:JSON.stringify({type:"rfq",data,website})});const j=await r.json().catch(()=>({}));if(!r.ok)throw new Error(j.error||"Submission failed");form.reset();status.textContent="Thank you. Your buyer inquiry has been received for review.";}catch(err){status.textContent="We could not submit this inquiry: "+err.message+". Please contact the trade desk via the main website."; }finally{btn.disabled=false;btn.textContent="Send buyer inquiry ↗";}});
+form.addEventListener("submit",async e=>{e.preventDefault();if(!form.reportValidity())return;const btn=form.querySelector("button");btn.disabled=true;btn.textContent="Submitting…";status.textContent="Submitting your inquiry…";try{const data=Object.fromEntries(new FormData(form).entries());const website=data.website||"";delete data.website;const r=await fetch(SUPABASE_URL+"/functions/v1/submit-intake",{method:"POST",headers:{"Content-Type":"application/json",apikey:KEY},body:JSON.stringify({type:"rfq",data,website})});const j=await r.json().catch(()=>({}));if(!r.ok)throw new Error(j.error||"Submission failed");if(!j.reference_id)throw new Error("The request was received but no reference number was returned. Please contact the trade desk.");form.reset();status.textContent="Your quotation request has been received. Save this reference number to track its progress:";const ref=document.createElement("strong");ref.className="rfq-reference";ref.textContent=j.reference_id;const copy=document.createElement("button");copy.type="button";copy.className="button secondary";copy.textContent="Copy reference";copy.addEventListener("click",async()=>{try{await navigator.clipboard.writeText(j.reference_id);copy.textContent="Copied";}catch{copy.textContent="Please select and copy the reference above";}});status.append(document.createElement("br"),ref,document.createElement("br"),copy);const trackRef=document.querySelector('#rfq-track-form [name="reference_id"]');const trackEmail=document.querySelector('#rfq-track-form [name="email"]');if(trackRef)trackRef.value=j.reference_id;if(trackEmail)trackEmail.value=data.email||"";}catch(err){status.textContent="We could not submit this inquiry: "+err.message+". Please try again or contact the trade desk."; }finally{btn.disabled=false;btn.textContent="Submit Request for Quotation ↗";}});
+
+const trackForm=document.getElementById("rfq-track-form");
+const trackStatus=document.getElementById("rfq-track-status");
+const statusLabels={new:"New — received",reviewing:"Reviewing — under review",matched:"Matched — supplier identified",introduced:"Introduced — buyer and supplier connected",closed:"Closed — request completed",rejected:"Rejected — unable to process"};
+trackForm.addEventListener("submit",async e=>{
+ e.preventDefault();if(!trackForm.reportValidity())return;
+ const button=trackForm.querySelector("button");button.disabled=true;button.textContent="Checking…";trackStatus.textContent="Checking your request…";
+ try{
+  const data=Object.fromEntries(new FormData(trackForm).entries());
+  const r=await fetch(SUPABASE_URL+"/functions/v1/submit-intake",{method:"POST",headers:{"Content-Type":"application/json",apikey:KEY},body:JSON.stringify({type:"rfq_status",data})});
+  const j=await r.json().catch(()=>({}));if(!r.ok)throw new Error(j.error||"Status lookup failed");
+  const item=j.request||{};trackStatus.replaceChildren();
+  const heading=document.createElement("strong");heading.textContent=statusLabels[item.status]||item.status||"Status unavailable";
+  const product=document.createElement("p");product.textContent="Product: "+(item.product||"—");
+  const ref=document.createElement("p");ref.textContent="Reference: "+(item.reference_id||"—");
+  const date=document.createElement("p");date.textContent="Submitted: "+(item.submitted_at?new Date(item.submitted_at).toLocaleString():"—");
+  trackStatus.append(heading,product,ref,date);
+ }catch(err){trackStatus.textContent=err.message;}finally{button.disabled=false;button.textContent="Check request status";}
+});
 </script></body></html>
