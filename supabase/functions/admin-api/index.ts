@@ -95,7 +95,8 @@ async function sendRfqStatusEmail(rfq: Record<string, unknown>, newStatus: strin
     transporter.close();
   }
 }
-\nconst reply = (status: number, body: unknown) =>
+
+const reply = (status: number, body: unknown) =>
   new Response(JSON.stringify(body), { status, headers: corsHeaders });
 
 Deno.serve(async (req) => {
