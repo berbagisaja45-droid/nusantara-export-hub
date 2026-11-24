@@ -184,7 +184,7 @@ function renderRfqs(){
   const detailButton=document.createElement("button");detailButton.type="button";detailButton.className="button secondary match-button";detailButton.textContent="View details";
   const detailPanel=document.createElement("div");detailPanel.className="rfq-inline-detail hidden";
   const detailItems=[
-   ["Buyer company",q.buyer_company],["Contact person",q.contact_name],["Email",q.email],
+   ["RFQ reference",q.id],["Buyer company",q.buyer_company],["Contact person",q.contact_name],["Email",q.email],
    ["Destination country",q.destination_country],["Product",q.product_required],["HS Code",q.hs_code],
    ["Quantity",q.quantity],["Target delivery",q.target_timeline],["Incoterms",q.incoterms],
    ["Specifications",q.specifications],["Submitted",q.created_at?new Date(q.created_at).toLocaleString():""]
@@ -194,6 +194,16 @@ function renderRfqs(){
    const strong=document.createElement("strong");strong.textContent=label+": ";
    line.append(strong,document.createTextNode(String(value)));detailPanel.appendChild(line);
   });
+  if(q.id){
+   const copyReference=document.createElement("button");
+   copyReference.type="button";copyReference.className="button secondary match-button";
+   copyReference.textContent="Copy RFQ reference";
+   copyReference.addEventListener("click",async()=>{
+    try{await navigator.clipboard.writeText(q.id);copyReference.textContent="Reference copied";}
+    catch{copyReference.textContent="Copy unavailable — select the reference above";}
+   });
+   detailPanel.appendChild(copyReference);
+  }
   if(q.email){
    const emailLink=document.createElement("a");emailLink.className="button";emailLink.href="mailto:"+encodeURIComponent(q.email)+"?subject="+encodeURIComponent("Nusantara Export Hub — "+(q.product_required||"Your quotation request"));
    emailLink.textContent="Reply to buyer by email";detailPanel.appendChild(emailLink);
