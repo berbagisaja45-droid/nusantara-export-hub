@@ -1,5 +1,10 @@
 <!doctype html>
-<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="description" content="International buyer portal for sourcing Indonesian products"><title>Buyer RFQ · Nusantara Export Hub</title><link rel="stylesheet" href="styles.css?v=20261124-rfq-track2"></head>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="description" content="International buyer portal for sourcing Indonesian products"><title>Buyer RFQ · Nusantara Export Hub</title><link rel="stylesheet" href="styles.css?v=20261124-rfq-track2"><style>
+.rfq-track-form{grid-template-columns:minmax(0,1fr);max-width:760px;gap:16px}
+.rfq-track-form label{width:100%;gap:8px}
+.rfq-track-form input{display:block;box-sizing:border-box;width:100%;min-height:46px}
+.rfq-track-form button{margin-top:2px}
+</style></head>
 <body><header><a class="brand" href="index.html">NUSANTARA <b>EXPORT HUB</b></a><nav><a href="marketplace.html">Marketplace</a><a href="producers.html">Producers</a><a href="producer-register.html">Register producer</a><a href="product-submit.html">Register product</a><a href="buyer-catalog.html">Buyer catalog</a><a href="buyer.html">Buyer RFQ</a><a href="export-intelligence.html">Export data</a><a href="admin.html">Admin</a></nav><a class="button" href="buyer.html">Request a quote</a></header>
 <section class="v2-hero"><div><small>INTERNATIONAL BUYER DESK</small><h1 style="font:clamp(34px,5vw,52px) Georgia;margin:12px 0">Source from Indonesia</h1><p class="v2-muted">Submit one structured sourcing request to our trade desk.</p></div><div><b>Buyer services</b><p class="v2-muted">Supplier introductions · Specification review · Export coordination</p></div></section>
 <main class="v2-wrap">
@@ -11,7 +16,7 @@
 <section id="rfq-tracking" class="v2-panel" style="margin-top:20px">
 <h2>Track your quotation request</h2>
 <p class="v2-muted">Enter the unique reference number shown after submission and the same email address used in your request. Only the request status and basic request details are displayed.</p>
-<form id="rfq-track-form" class="v2-form">
+<form id="rfq-track-form" class="v2-form rfq-track-form">
 <label>RFQ reference number<input name="reference_id" required maxlength="36" placeholder="xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"></label>
 <label>Buyer email<input name="email" type="email" required maxlength="254" placeholder="name@company.com"></label>
 <button class="button" type="submit">Check request status</button>
