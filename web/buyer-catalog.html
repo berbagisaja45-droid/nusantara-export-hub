@@ -22,7 +22,15 @@ function renderBuyerProducts(){
   const d=document.createElement("p");d.textContent=x.description||"Specifications available on request.";
   const m=document.createElement("small");m.textContent=["MOQ: "+(x.moq||"on request"),"Capacity: "+(x.monthly_capacity||"on request"),"HS: "+(x.hs_code||"on request")].join(" · ");
   if(terms.length){const badge=document.createElement("strong");badge.textContent="Keyword relevance: "+score;badge.style.cssText="display:inline-block;margin:10px 0;color:#1e5039;font-size:12px";card.append(badge);}
-  card.append(h,p,d,m);catalog.append(card);
+  card.append(h,p,d,m);
+  const supplier=x.producers||{};
+  const quote=document.createElement("a");quote.className="button";
+  const params=new URLSearchParams({product:x.name||"",source:"buyer-catalog"});
+  if(x.hs_code)params.set("hs_code",x.hs_code);
+  if(supplier.business_name)params.set("supplier",supplier.business_name);
+  quote.href="buyer.html?"+params.toString()+"#buyer-rfq";
+  quote.textContent="Request Quotation ↗";
+  card.append(quote);catalog.append(card);
  });
 }
 document.getElementById("buyer-product-search").addEventListener("input",renderBuyerProducts);
