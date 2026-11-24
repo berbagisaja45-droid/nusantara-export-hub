@@ -31,7 +31,7 @@ async function sendRfqStatusEmail(rfq: Record<string, unknown>, newStatus: strin
   if (!host || !username || !password || !from || !Number.isInteger(port) || port <= 0) {
     return { status: "not_configured", message: "Email notification is not configured. Add SMTP secrets to Supabase Edge Functions." };
   }
-  if (!/^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/.test(recipient)) {
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(recipient)) {
     return { status: "skipped", message: "Buyer email is missing or invalid." };
   }
 
@@ -61,7 +61,7 @@ async function sendRfqStatusEmail(rfq: Record<string, unknown>, newStatus: strin
     "Track your request: " + trackingUrl,
     "",
     "Nusantara Export Hub Trade Desk"
-  ].join("\\n");
+  ].join("\n");
 
   const html = `<!doctype html><html><body style="margin:0;padding:24px;background:#f6f8f4;font-family:Arial,sans-serif;color:#24362b">
     <div style="max-width:600px;margin:auto;background:#fff;border:1px solid #e1e8df;border-radius:8px;padding:28px">
