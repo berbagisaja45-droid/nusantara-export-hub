@@ -230,13 +230,24 @@ async function loadRfqs(){
 async function updateRfq(id,status,select){
  select.disabled=true;
  try{
-  await api("POST",{action:"update_rfq",id,status});
+  const updateResult=await api("POST",{action:"update_rfq",id,status});
   const refreshed=await api("GET",null,"rfqs");
   rfqRecords=refreshed.rfqs||[];
   const saved=rfqRecords.find(q=>q.id===id);
   if(!saved||saved.status!==status)throw new Error("Supabase has not confirmed the new status. Please refresh and try again.");
   updateRfqSummary();renderRfqs();
-  note("admin-note","RFQ status saved and verified in Supabase: "+status+".");
+  const notification=updateResult.notification||{};
+  if(notification.status==="sent"){
+   note("admin-note","RFQ status saved and verified in Supabase: "+status+". Buyer notification email sent.");
+  }else if(notification.status==="not_configured"){
+   note("admin-note","RFQ status saved: "+status+". Buyer email notification is pending SMTP setup in Supabase Edge Function secrets.");
+  }else if(notification.status==="failed"){
+   note("admin-note","RFQ status saved: "+status+". Buyer email could not be sent. Check SMTP secrets and delivery logs.");
+  }else if(notification.status==="skipped"){
+   note("admin-note","RFQ status saved: "+status+". Email was not sent: "+(notification.message||"buyer email unavailable"));
+  }else{
+   note("admin-note","RFQ status saved and verified in Supabase: "+status+".");
+  }
  }catch(err){note("admin-note",err.message);await loadRfqs();}
  finally{if(select.isConnected)select.disabled=false;}
 }
