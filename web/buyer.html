@@ -4,6 +4,12 @@
 .rfq-track-form label{width:100%;gap:8px}
 .rfq-track-form input{display:block;box-sizing:border-box;width:100%;min-height:46px}
 .rfq-track-form button{margin-top:2px}
+
+.rfq-track-form{display:flex!important;flex-direction:column!important;align-items:stretch!important;gap:16px!important;max-width:760px}
+.rfq-track-field{display:flex!important;flex-direction:column!important;align-items:stretch!important;gap:7px!important;width:100%}
+.rfq-track-field label{display:block!important;font-size:13px!important;font-weight:700!important;line-height:1.4!important;margin:0!important}
+.rfq-track-field input{display:block!important;width:100%!important;box-sizing:border-box!important;min-height:46px!important;margin:0!important}
+.rfq-track-form button{align-self:flex-start!important;margin-top:2px}
 </style></head>
 <body><header><a class="brand" href="index.html">NUSANTARA <b>EXPORT HUB</b></a><nav><a href="marketplace.html">Marketplace</a><a href="producers.html">Producers</a><a href="producer-register.html">Register producer</a><a href="product-submit.html">Register product</a><a href="buyer-catalog.html">Buyer catalog</a><a href="buyer.html">Buyer RFQ</a><a href="export-intelligence.html">Export data</a><a href="admin.html">Admin</a></nav><a class="button" href="buyer.html">Request a quote</a></header>
 <section class="v2-hero"><div><small>INTERNATIONAL BUYER DESK</small><h1 style="font:clamp(34px,5vw,52px) Georgia;margin:12px 0">Source from Indonesia</h1><p class="v2-muted">Submit one structured sourcing request to our trade desk.</p></div><div><b>Buyer services</b><p class="v2-muted">Supplier introductions · Specification review · Export coordination</p></div></section>
@@ -17,8 +23,14 @@
 <h2>Track your quotation request</h2>
 <p class="v2-muted">Enter the unique reference number shown after submission and the same email address used in your request. Only the request status and basic request details are displayed.</p>
 <form id="rfq-track-form" class="v2-form rfq-track-form">
-<label>RFQ reference number<input name="reference_id" required maxlength="36" placeholder="xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"></label>
-<label>Buyer email<input name="email" type="email" required maxlength="254" placeholder="name@company.com"></label>
+<div class="rfq-track-field">
+<label for="rfq-reference-input">RFQ reference number</label>
+<input id="rfq-reference-input" name="reference_id" type="text" required maxlength="36" autocomplete="off" placeholder="xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx">
+</div>
+<div class="rfq-track-field">
+<label for="rfq-buyer-email">Buyer email</label>
+<input id="rfq-buyer-email" name="email" type="email" required maxlength="254" autocomplete="email" placeholder="name@company.com">
+</div>
 <button class="button" type="submit">Check request status</button>
 <p id="rfq-track-status" class="v2-status full" role="status">Your request status will appear here.</p>
 </form>
