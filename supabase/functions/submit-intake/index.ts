@@ -29,6 +29,41 @@ Deno.serve(async (req) => {
   const key = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
   if (!url || !key) return reply(500, { error: "Server configuration incomplete" });
 
+  // Private buyer status lookup: require both the UUID reference and original buyer email.
+  // Only minimal tracking fields are returned; buyer contact details are never exposed.
+  if (type === "rfq_status") {
+    const referenceId = clean(data.reference_id, 80);
+    const email = clean(data.email, 180).toLowerCase();
+    const uuidPattern = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+    if (!uuidPattern.test(referenceId) || !/^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/.test(email)) {
+      return reply(400, { error: "Enter a valid reference number and the email used for the request." });
+    }
+    const params = new URLSearchParams({
+      select: "id,status,product_required,created_at",
+      id: "eq." + referenceId,
+      email: "eq." + email,
+      limit: "1"
+    });
+    const lookup = await fetch(url + "/rest/v1/buyer_rfqs?" + params.toString(), {
+      headers: { apikey: key, Authorization: "Bearer " + key }
+    });
+    if (!lookup.ok) {
+      console.error("RFQ status lookup failed:", await lookup.text());
+      return reply(500, { error: "Could not check request status right now." });
+    }
+    const matches = await lookup.json();
+    if (!Array.isArray(matches) || matches.length === 0) {
+      return reply(404, { error: "No matching request found. Check the reference number and email address." });
+    }
+    const item = matches[0];
+    return reply(200, { ok: true, request: {
+      reference_id: item.id,
+      status: item.status,
+      product: item.product_required,
+      submitted_at: item.created_at
+    }});
+  }
+
   let table: string;
   let row: Record<string, unknown>;
 
@@ -101,13 +136,19 @@ Deno.serve(async (req) => {
       "apikey": key,
       "Authorization": `Bearer ${key}`,
       "Content-Type": "application/json",
-      "Prefer": "return=minimal"
+      "Prefer": type === "rfq" ? "return=representation" : "return=minimal"
     },
     body: JSON.stringify(row)
   });
   if (!response.ok) {
     console.error("Supabase insert failed:", await response.text());
     return reply(500, { error: "Database could not save the submission" });
+  }
+  if (type === "rfq") {
+    const saved = await response.json();
+    const referenceId = Array.isArray(saved) && saved[0] ? saved[0].id : null;
+    if (!referenceId) return reply(500, { error: "Your request was saved, but its reference number could not be generated. Please contact the trade desk." });
+    return reply(200, { ok: true, reference_id: referenceId });
   }
   return reply(200, { ok: true });
 });
