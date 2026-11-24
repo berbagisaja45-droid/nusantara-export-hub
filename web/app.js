@@ -186,8 +186,12 @@ async function loadPublishedProducts() {
       const supplierName = document.createElement("strong"); supplierName.textContent = supplier.business_name || "Verified supplier";
       supplierLine.append("Supplier: ", supplierName); card.appendChild(supplierLine);
       const inquiry = document.createElement("a"); inquiry.className = "button";
-      inquiry.href = "mailto:berbagisaja45@gmail.com?subject=" + encodeURIComponent("Product inquiry: " + product.name + " — " + (supplier.business_name || "Nusantara Export Hub"));
-      inquiry.textContent = "Send inquiry ↗"; card.appendChild(inquiry);
+      const rfqParams = new URLSearchParams({ product: product.name || "" });
+      if (product.hs_code) rfqParams.set("hs_code", product.hs_code);
+      if (supplier.business_name) rfqParams.set("supplier", supplier.business_name);
+      rfqParams.set("source", "marketplace");
+      inquiry.href = "buyer.html?" + rfqParams.toString() + "#buyer-rfq";
+      inquiry.textContent = "Request Quotation ↗"; card.appendChild(inquiry);
       target.appendChild(card);
     });
   } catch (error) {
