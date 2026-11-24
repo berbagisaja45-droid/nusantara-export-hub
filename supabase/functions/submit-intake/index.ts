@@ -35,13 +35,13 @@ Deno.serve(async (req) => {
     const referenceId = clean(data.reference_id, 80);
     const email = clean(data.email, 180).toLowerCase();
     const uuidPattern = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
-    if (!uuidPattern.test(referenceId) || !/^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/.test(email)) {
+    if (!uuidPattern.test(referenceId) || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
       return reply(400, { error: "Enter a valid reference number and the email used for the request." });
     }
     const params = new URLSearchParams({
       select: "id,status,product_required,created_at",
       id: "eq." + referenceId,
-      email: "eq." + email,
+      email: "ilike." + email,
       limit: "1"
     });
     const lookup = await fetch(url + "/rest/v1/buyer_rfqs?" + params.toString(), {
