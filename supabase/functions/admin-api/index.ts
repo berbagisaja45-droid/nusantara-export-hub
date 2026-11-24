@@ -1,4 +1,4 @@
-import nodemailer from "npm:nodemailer@10.6.1";
+import nodemailer from "npm:nodemailer@^9";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "https://berbagisaja45-droid.github.io",
@@ -46,7 +46,10 @@ async function sendRfqStatusEmail(rfq: Record<string, unknown>, newStatus: strin
     host,
     port,
     secure,
-    auth: { user: username, pass: password }
+    auth: { user: username, pass: password },
+    connectionTimeout: 10000,
+    greetingTimeout: 10000,
+    socketTimeout: 20000
   });
 
   const text = [
@@ -88,6 +91,8 @@ async function sendRfqStatusEmail(rfq: Record<string, unknown>, newStatus: strin
   } catch (error) {
     console.error("RFQ status email failed:", error);
     return { status: "failed", message: "RFQ status was saved, but the buyer email could not be sent. Check SMTP secrets and delivery logs." };
+  } finally {
+    transporter.close();
   }
 }
 \nconst reply = (status: number, body: unknown) =>
