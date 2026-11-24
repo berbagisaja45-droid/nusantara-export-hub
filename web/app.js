@@ -1,11 +1,9 @@
-const products=[
-{name:"Solok Arabica Coffee",category:"Coffee & Cocoa",origin:"Solok, West Sumatra",description:"Arabica coffee from highland smallholder growers.",price:"Indicative price on request",supplier:"Local cooperative",tag:"Regional specialty",image:"https://images.unsplash.com/photo-1520516472218-ed48f8ff3271?auto=format&fit=crop&w=900&q=85",alt:"Roasted coffee beans"},
-{name:"Madu Galo-galo",category:"Honey & Natural Products",origin:"Balai Gadang, Padang, West Sumatra",description:"Galo-galo (stingless-bee) honey supplied by KKMP Balai Gadang. Packaging, harvest batch, laboratory specifications and export volume are confirmed directly with the supplier.",price:"Price and minimum order on request",supplier:"KKMP Balai Gadang",tag:"Featured supplier",image:"https://www.distacart.com/cdn/shop/files/oURUGazwMF_960x960.jpg?v=1715839749",alt:"Illustrative stingless-bee honey jar; not the KKMP product packaging",illustrative:true},
-{name:"Forest Honey",category:"Honey & Natural Products",origin:"West Sumatra",description:"Locally collected forest honey. Specifications to be confirmed.",price:"Indicative price on request",supplier:"Community supplier",tag:"Regional product",image:"https://aravindfarm.com/media/products/foresthumbnail-2_idRJpTy.jpg",alt:"Forest honey jar"},
-{name:"Indonesian Cinnamon",category:"Spices",origin:"Kerinci, Indonesia",description:"Dried cinnamon offered by regional suppliers.",price:"Indicative price on request",supplier:"Regional trader",tag:"Spices",image:"https://images.unsplash.com/photo-1702058676458-1ed7d4ca0313?auto=format&fit=crop&w=900&q=85",alt:"Cinnamon sticks"}
-];
-document.getElementById("year").textContent=new Date().getFullYear();
-document.getElementById("products").innerHTML=products.map(p=>'<article class="product '+(p.supplier==="KKMP Balai Gadang"?"featured-product":"")+'"><div class="product-image-wrap"><img class="product-image" src="'+p.image+'" alt="'+p.alt+'" loading="lazy" onerror="this.closest(\'.product-image-wrap\').classList.add(\'image-failed\');this.remove()">'+(p.illustrative?'<span class="image-note">Foto ilustrasi · bukan kemasan KKMP</span>':'')+'</div><div class="product-topline"><small>'+p.category+' · '+p.origin+'</small><span class="product-tag">'+p.tag+'</span></div><h3>'+p.name+'</h3><p>'+p.description+'</p><p><b>'+p.price+'</b></p><p class="supplier-line">Supplier: <strong>'+p.supplier+'</strong></p><a class="button" href="mailto:berbagisaja45@gmail.com?subject='+encodeURIComponent("Product inquiry: "+p.name+" — "+p.supplier)+'">Send inquiry ↗</a></article>').join("");
+// Public marketplace is populated exclusively from approved Supabase catalog records.
+const productsTarget = document.getElementById("products");
+if (productsTarget) {
+  productsTarget.setAttribute("aria-live", "polite");
+  productsTarget.innerHTML = '<p class="catalog-loading">Loading approved export products...</p>';
+}
 
 const galoGallery=[
 {title:"Lebah Galo-galo",desc:"Lebah tanpa sengat yang bekerja di sekitar pintu sarang.",image:"https://thumb.braavo.me/birden/0/2543957042.jpg",alt:"Lebah tanpa sengat di sekitar kotak sarang"},
@@ -142,6 +140,14 @@ async function loadPublishedProducts() {
     });
     if (!response.ok) throw new Error("Could not load approved catalog products.");
     const records = await response.json();
+    target.replaceChildren();
+    if (!records.length) {
+      const empty = document.createElement("p");
+      empty.className = "catalog-empty";
+      empty.textContent = "No approved products are published yet. Please check back soon or contact the trade desk.";
+      target.appendChild(empty);
+      return;
+    }
     records.forEach(product => {
       const supplier = product.producers || {};
       const card = document.createElement("article");
